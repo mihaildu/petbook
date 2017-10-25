@@ -1,0 +1,32 @@
+{
+   "name": "petbook",
+   "version": "1.0.0",
+   "description": "Social network in react",
+   "engines": {
+      "node": "6.11.1"
+   },
+   "main": "index.js",
+   "scripts": {
+      "start": "node index.js",
+      "test": "echo \"Error: no test specified\" && exit 1"
+   },
+   "repository": {
+      "type": "git",
+      "url": "git+https://github.com/dryhten/petbook.git"
+   },
+   "keywords": [
+      "pets",
+      "facebook",
+      "social",
+      "network"
+   ],
+   "author": "",
+   "license": "MIT",
+   "bugs": {
+      "url": "https://github.com/dryhten/petbook/issues"
+   },
+   "homepage": "https://github.com/dryhten/petbook#readme",
+   "dependencies": {
+      "express": "^4.16.2"
+   }
+}

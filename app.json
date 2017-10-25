@@ -1,0 +1,6 @@
+{
+    "name": "Petbook",
+    "description": "A social network in React (for pets)",
+    "repository": "https://github.com/dryhten/petbook",
+    "keywords": ["pets", "facebook", "social", "network"],
+}
