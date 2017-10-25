@@ -8,7 +8,7 @@
     "main": "index.js",
     "scripts": {
 	"start": "node app.js",
-	"build": "node_modules/.bin/webpack",
+	"postinstall": "node_modules/.bin/webpack",
 	"watch": "node_modules/.bin/webpack --watch",
 	"test": "echo \"Error: no test specified\" && exit 1"
     },
