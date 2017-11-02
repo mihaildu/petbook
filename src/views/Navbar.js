@@ -30,14 +30,15 @@ function Navbar(props) {
 	    <div className="collapse navbar-collapse" id="navmenu">
 	      <form className="navbar-form navbar-right" method="post">
 		<div className="form-group">
-		  <input type="email" className="form-control" name="email"
-			 placeholder="Email" />
+		  <input type="email" className="form-control"
+			 name="email_login" placeholder="Email" />
 		</div>
 		<div className="form-group">
-		  <input type="password" className="form-control" name="pass"
-			 placeholder="Password" />
+		  <input type="password" className="form-control"
+			 name="password_login" placeholder="Password" />
 		</div>
-		<button type="submit" className="form-group btn btn-default">
+		<button name="submit_login" type="submit"
+			className="form-group btn btn-default">
 		  Log in
 		</button>
 	      </form>

@@ -111,3 +111,17 @@ body {
 #signup-btn-col {
     margin-right: 40px;
 }
+
+/* generic class for centering text */
+.text-centered {
+    text-align: center;
+}
+
+/* error messages */
+.error-messages {
+    margin-top: 10px;
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}

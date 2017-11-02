@@ -7,7 +7,18 @@
 
 import React from "react";
 
+/* TODO might not need this after all */
+import {Actions} from "../data/PetbookActions.js";
+
 function SignUpView(props) {
+    /*
+     * normally values should be in props
+     * until I find a proper way to avoid input locking
+     * the values will be set with jquery
+     * */
+
+    /* TODO read values from pet_list and map them to options */
+
     return (
 	<div id="signup-menu">
 	  <div id="signup-title">
@@ -40,7 +51,7 @@ function SignUpView(props) {
 	    <div className="row">
 	      <div className="col-md-12">
 		<div className="form-group">
-		  <input type="text" name="email_signup"
+		  <input type="email" name="email_signup"
 			 placeholder="Email Address"
 			 className="form-control"
 			 />
@@ -69,9 +80,9 @@ function SignUpView(props) {
 		<div className="col-md-3">
 		  <select className="form-control" id="pet-select"
 			  name="pet_type_signup">
-		    <option>Cat</option>
-		    <option>Dog</option>
-		    <option>Potato</option>
+		    <option value="Cat">Cat</option>
+		    <option value="Dog">Dog</option>
+		    <option value="Potato">Potato</option>
 		  </select>
 		</div>
 	      </div>
@@ -86,10 +97,12 @@ function SignUpView(props) {
 		</div>
 		<div className="col-md-6">
 		  <label className="pet-text">
-		    <input type="radio" name="pet_gender_signup" />Female
+		    <input type="radio" name="pet_gender_signup"
+			   value="Female" id="pet_gender_female" />Female
 		  </label>
 		  <label className="pet-text" id="pet-gender-male">
-		    <input type="radio" name="pet_gender_signup" />Male
+		    <input type="radio" name="pet_gender_signup"
+			   value="Male" id="pet_gender_male" />Male
 		  </label>
 		</div>
 	      </div>
