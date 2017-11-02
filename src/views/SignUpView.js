@@ -9,6 +9,7 @@ import React from "react";
 
 /* TODO might not need this after all */
 import {Actions} from "../data/PetbookActions.js";
+import PetTypes from "../data/PetTypes.js";
 
 function SignUpView(props) {
     /*
@@ -17,8 +18,12 @@ function SignUpView(props) {
      * the values will be set with jquery
      * */
 
-    /* TODO read values from pet_list and map them to options */
-
+    /* these should be retrived used a get request */
+    let id = 0;
+    const options = PetTypes.map(
+	pet =>
+	    <option key={id++} value={pet}>{pet}</option>
+    );
     return (
 	<div id="signup-menu">
 	  <div id="signup-title">
@@ -80,9 +85,7 @@ function SignUpView(props) {
 		<div className="col-md-3">
 		  <select className="form-control" id="pet-select"
 			  name="pet_type_signup">
-		    <option value="Cat">Cat</option>
-		    <option value="Dog">Dog</option>
-		    <option value="Potato">Potato</option>
+		    {options}
 		  </select>
 		</div>
 	      </div>
