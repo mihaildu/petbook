@@ -3,49 +3,9 @@ body {
     background: #eaeaea url("../imgs/bg.png");
 }
 
-/* for some reason the form groups in the navbar have no margins */
-.form-group {
-    margin-left: 2px;
-    margin-right: 2px;
-}
-
 /* colors for navbar background */
 .navbar-default {
     background-color: skyblue;
-}
-
-/* colors for navbar logo */
-.navbar-default .navbar-brand,
-.navbar-default .navbar-brand:hover {
-    color: #F5F5F5;
-}
-
-/* make the navbar a little big bigger */
-.navbar {
-    min-height: 70px;
-}
-
-/* align everything in center vertically */
-.navbar {
-    display: flex;
-    align-items: center;
-}
-
-/* change font for navbar */
-.navbar-brand {
-    font-size: 30px;
-    font-weight: bolder;
-}
-
-/*
- * clear navbar div
- * TODO this should have 2 versions, one for welcome and
- * one for everything else
- *
- * TODO also, some of this stuff should be moved to welcome.css
- * */
-#clear-navbar {
-    margin-top: 71px;
 }
 
 /* add some spacing between navbar and everything else */
@@ -53,75 +13,8 @@ body {
     margin-top: 100px;
 }
 
-#signup-menu {
-    font-size: 14px;
-}
-
-#signup-title {
-    font-size: 30px;
-    font-weight: bolder;
-}
-
-#signup-form {
-    margin-top: 15px;
-}
-
-/* align with other input elements */
-.pet-text {
-    margin-left: 5px;
-    font-weight: normal;
-}
-
-/* pet type selector needs more spacing */
-#pet-type-row {
-    margin-top: 10px;
-}
-
-/*
- * gender row is a bit too up since col & form-group were interchanged
- * in the previous section
- * maybe 10px is too much
- * */
-#pet-gender-row {
-    margin-top: 25px;
-}
-
-/* move male radio button a little bit to the right */
-#pet-gender-male {
-    margin-left: 10px;
-}
-
-/* pet bday selector needs spacing as well */
-#pet-bday-row {
-    margin-top: 20px;
-}
-
-/* sign up button needs some top margin as well */
-#signup-btn-row {
-    margin-top: 30px;
-}
-
-/* make the image look nicer */
-#pet-image {
-    width: 100%;
-    border-radius: 100px;
-}
-
-/* add some spacing between signup and guest buttons */
-#signup-btn-col {
-    margin-right: 40px;
-}
 
 /* generic class for centering text */
 .text-centered {
     text-align: center;
-}
-
-/* error messages */
-.error-messages {
-    margin-top: 10px;
-    display: inline-block;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: left;
 }

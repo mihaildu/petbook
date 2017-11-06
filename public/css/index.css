@@ -1,1 +1,274 @@
+/* file used on index.html/main view */
 
+/*
+ * navbar specific settings
+ * */
+
+/* align logo in center vertically */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+}
+
+/* vertically center extra stuff on right */
+#extra-navbar {
+    line-height: 50px;
+    font-weight: bolder;
+    display: flex;
+    align-items: center;
+}
+.navbar-link {
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    float: left;
+}
+
+/* navbar separators */
+.navbar-separator {
+    float: left;
+}
+
+/* change text color to white */
+.navbar-default .navbar-link {
+    color: white;
+}
+.navbar-default .navbar-link:hover {
+    color: white;
+    text-decoration: none;
+    background-color: #5ab7fd;
+}
+
+/* clear navbar div */
+#clear-navbar {
+    margin-top: 51px;
+}
+
+/* friend request image */
+#friend-request {
+    height: 30px;
+}
+
+/* navbar chat image */
+#navbar-chat {
+    height: 30px;
+}
+
+/*
+ * make navbar form smaller (in height)
+ * also, remove border
+ * */
+.navbar-form {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    border-top-width: 0px;
+}
+
+/* profile image in navbar */
+#navbar-profile-image {
+    /* old values */
+    //height: 40px;
+    //width: 40px;
+    //border-radius: 20px;
+    //background-color: white;
+
+    height: 35px;
+    width: 35px;
+    border-radius: 10px;
+    float: left;
+    margin-right: 10px;
+}
+
+
+
+/*
+ * main view settings
+ * */
+
+/* remove padding from cols */
+.col-md-2, .col-md-7, .col-md-3 {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+/* this contains all 3 views */
+#main-container {
+    margin-top: 60px;
+}
+
+/* customize the side bar list */
+#side-bar-list {
+    padding-left: 0px;
+}
+
+ul#side-bar-list li {
+    list-style-type: none;
+    height: 35px;
+    width: 150px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+/* no colors for links */
+ul#side-bar-list a {
+    color: inherit;
+}
+
+ul#side-bar-list a:hover, ul#side-bar-list a:link {
+    text-decoration: none;
+}
+
+ul#side-bar-list li:hover, ul#side-bar-list li.selected {
+    background-color: #E0E0E0;
+}
+
+ul#side-bar-list li.selected {
+    font-weight: bolder;
+}
+
+#news-image, #chat-sidebar-image {
+    height: 20px;
+    margin-right: 10px;
+}
+
+#post-box {
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+}
+
+#post-textarea, #edit-textarea {
+    height: 150px;
+}
+
+#post-btn-wrapper {
+    text-align: left;
+    background-color: #E0E0E0;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+#post-btn {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+}
+
+#save-btn, #cancel-btn {
+    margin-top: 10px;
+}
+
+#cancel-btn {
+    margin-left: 10px;
+}
+
+#file-upload {
+    display: none;
+}
+
+#file-upload-btn {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    padding: 6px 12px;
+    cursor: pointer;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+#file-upload-btn:hover {
+    background-color: #E0E0E0;
+}
+
+#post-upload {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    //justify-content: center;
+}
+
+#post-pic {
+    height: 150px;
+}
+
+#post-pic-desc {
+    display: block;
+    height: 80px;
+}
+
+#news-view {
+    margin-top: 20px;
+}
+
+.news-post {
+    width: 75%;
+    background-color: white;
+    /* center */
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.full-text {
+    display: none;
+}
+
+.short-text {
+    display: block;
+}
+
+.edit-text {
+    display: none;
+}
+
+.news-post-short {
+    //max-height: 220px;
+}
+
+.news-header {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+}
+
+.news-avatar {
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #E0E0E0;
+    margin: 5px;
+}
+
+.post-author {
+    margin-left: 10px;
+}
+
+.news-date {
+    color: #868686;
+    margin-left: auto;
+    margin-right: 10px;
+}
+
+.delete-post {
+    color: #868686;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+.edit-post {
+    color: #868686;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+.news-body {
+    text-align: left;
+    padding: 10px;
+}

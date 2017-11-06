@@ -1,8 +1,5 @@
-/* The sign up menu
- *
- * TODO
- *   value= auto completion
- *   move pet type options to a different file
+/*
+ * The sign up menu
  * */
 
 import React from "react";
