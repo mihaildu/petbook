@@ -8,7 +8,7 @@ import React from "react";
 function NewsView(props) {
     /*
      * props.posts:
-     *   [{id, uid, text, avatar, comments, avatarUrl}, ...]
+     *   [{id, uid, text, avatar, comments, avatarUrl, ...TODO}, ...]
      * */
 
     /*
@@ -90,14 +90,52 @@ function NewsView(props) {
 	$(elem_id).find(".full-text").show();
     }
 
+    function image_click(id) {
+	let modal_id = "#img-modal-" + id;
+	let img_elem = document.getElementById("img-" + id);
+	let new_width = img_elem.naturalWidth + 2;
+	/*
+	 * TODO this should be done only once
+	 * maybe run once after page finished loading
+	 * */
+	$(modal_id).find(".modal-dialog").css("width", new_width);
+	$(modal_id).modal("show");
+    }
+
+    function image_close(id) {
+	let modal_id = "#img-modal-" + id;
+	$(modal_id).modal("hide");
+    }
+
+    /* TODO auto-scrolling or limit the number of posts/make pages */
     const posts = props.posts.map(post => {
+	let id = 0, post_image = null;
+	if (post.isText === false) {
+	    /* TODO make sure the image works fine on mobile */
+	    post_image = (
+		<div>
+		  <div className="modal img-modal" id={"img-modal-" + post.id}>
+		    <div className="modal-dialog modal-content">
+		      <div className="modal-body">
+			<img id={"img-" + post.id} src={post.photoUrl}/>
+			<span className="close"
+			      onClick={(e) => image_close(post.id)}>x</span>
+		      </div>
+		    </div>
+		  </div>
+		  <div className="news-img-div">
+		    <img className="news-img" src={post.photoUrl}
+			 onClick={(e) => image_click(post.id)} />
+		  </div>
+		</div>
+	    );
+	}
 	/*
 	 * format text to be displayed
 	 * doing {post.text} will convert \n to spaces (as is normal)
 	 * one thing I can do is to generated multiple react elements
 	 * and output something like {elem1}<br/>{elem2}...
 	 * */
-	let id = 0;
 	const formatted_text = post.text.split("\n").map(elem => {
 	    return (
 		<span key={id++}>
@@ -155,6 +193,7 @@ function NewsView(props) {
 		<div className="edit-text">
 		  <form method="post" className="edit-post-form">
 		    <input type="hidden" name="pid" value={post.id} />
+		    <input type="hidden" name="isText" value={post.isText} />
 		    <textarea className="form-control" name="edit_text"
 			      id="edit-textarea">
 		    </textarea>
@@ -172,6 +211,7 @@ function NewsView(props) {
 		    </div>
 		  </form>
 		</div>
+		{post_image}
 	      </div>
 	    </div>
 	);

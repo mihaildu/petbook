@@ -8,6 +8,7 @@ var app = express();
 const port = 5000;
 
 const qs = require("querystring");
+const multer = require("multer");
 
 const login = require("my-util/login.js");
 const signup = require("my-util/signup.js");
@@ -23,6 +24,18 @@ const index_path = __dirname + "/views/index.html";
 const welcome_path = __dirname + "/views/welcome.html";
 const user_path = __dirname + "/views/user.html";
 
+/*
+ * maximum file size for uploads
+ * this is in bytes
+ * */
+const max_file_size = 2000000;
+
+/* value variables used in several places */
+const login_values = ["email_login", "password_login"];
+const signup_values = ["first_name_signup", "last_name_signup", "email_signup",
+		       "password_signup", "pet_type_signup",
+		       "pet_gender_signup", "pet_bday_signup"];
+
 /* start session */
 const session = require("express-session");
 app.use(session({
@@ -30,12 +43,6 @@ app.use(session({
     resave: false,
     saveUninitialized: true
 }));
-
-/* value variables used in several places */
-const login_values = ["email_login", "password_login"];
-const signup_values = ["first_name_signup", "last_name_signup", "email_signup",
-		       "password_signup", "pet_type_signup",
-		       "pet_gender_signup", "pet_bday_signup"];
 
 /* welcome page */
 app.get(["/", "/index", "/index.html"], function(req, res) {
@@ -136,7 +143,6 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 		res.redirect("/");
 		return;
 	    }
-	    /* TODO check type of post - text or picture */
 	    if (!("post_text" in post_data)) {
 		console.error("incorrect post");
 		res.redirect(req.url);
@@ -145,6 +151,7 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 	    /*
 	     * if text is empty - nothing to submit
 	     * TODO perform this check on the frontend
+	     * might save some time
 	     * */
 	    if (post_data["post_text"] == "") {
 		res.redirect(req.url);
@@ -153,6 +160,9 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 	    /* add user id and avatar id (for now) to data */
 	    post_data["uid"] = req.session.auth["uid"];
 	    post_data["avatar"] = req.session.auth["avatar"];
+	    /* this is a text post */
+	    post_data["isText"] = true;
+	    post_data["photo"] = null;
 	    posts.submit_post(post_data, req, "post_text");
 	    return;
 	}
@@ -170,6 +180,13 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 		res.redirect(req.url);
 		return;
 	    }
+
+	    /*
+	     * TODO
+	     * if post is an image, should the image be deleted
+	     * as well?
+	     * */
+
 	    /* add uid as well - needed for permission checking */
 	    post_data["uid"] = req.session.auth["uid"];
 	    posts.delete_post(post_data, req, "post_text");
@@ -182,7 +199,7 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 		res.redirect("/");
 		return;
 	    }
-	    if(!["edit_text", "pid"].every(
+	    if(!["edit_text", "pid", "isText"].every(
 		prop => prop in post_data)){
 		console.error("incorrect post");
 		res.redirect(req.url);
@@ -190,6 +207,12 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 	    }
 	    /* add uid as well - needed for permission checking */
 	    post_data["uid"] = req.session.auth["uid"];
+	    /* if it's a photo, description needs to be updated */
+	    if (post_data["isText"] == "false") {
+		/* TODO do nothing for now */
+		res.redirect("/");
+		return;
+	    }
 	    posts.update_post(post_data, req, "post_text");
 	    return;
 	}
@@ -211,10 +234,10 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 	     * */
 	    req.once("avatar", (ret) => {
 		if (ret["success"] == true)
-		    req.session.auth["avatarUrl"] = ret["photo_url"];
+		    req.session.auth["avatarUrl"] = ret["path"];
 		res.redirect("/");
 	    });
-	    photos.get_photo_url(req.session.auth.avatar, req, "avatar");
+	    photos.get_photo_info(req.session.auth.avatar, req, "avatar");
 	    return;
 	}
 
@@ -272,6 +295,124 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 	 * */
 	res.redirect("/");
     });
+});
+
+/* multer object for uploading photos */
+const upload_photo = multer({
+    dest: "public/photos/",
+    fileFilter: (req, file, cb) => {
+	/*
+	 * this is to block non-users from uploading
+	 * also, the post function will run even if the file
+	 * was not uploaded, so this needs to be checked twice
+	 * */
+	if (typeof(req.session["auth"]) == "undefined"){
+	    cb(null, false);
+	    return;
+	}
+	/*
+	 * TODO this is not guaranteed to work every time
+	 * a working solution would be to check on the frontend
+	 * if field is empty and if so, stop there
+	 *
+	 * since we can have custom post requests (e.g. curl)
+	 * we need to check in main function anyway, and delete
+	 * the uploaded photo from disk if field is empty
+	 * */
+	if (!("post_pic_desc" in req.body) ||
+	    (req.body["post_pic_desc"] == "")) {
+	    cb(new Error("Pictures without description are not allowed"));
+	    return;
+	}
+
+	const tokens = file.originalname.split(".");
+	const extension = tokens[tokens.length - 1];
+	const allowed_extensions = ["png", "jpg", "jpeg"];
+	if (allowed_extensions.indexOf(extension) < 0) {
+	    /*
+	     * TODO how to pass message to cb
+	     * this will show in the generic error handler
+	     * cb(new Error("File type not accepted"));
+	     * */
+	    cb(new Error("File type not accepted"));
+	    //cb(null, false);
+	    return;
+	}
+	cb(null, true);
+    },
+    limits: {
+	fileSize: max_file_size
+    }
+});
+
+app.post("/upload-post", upload_photo.single("file_upload"), (req, res) => {
+    /*
+     * this is for uploading photos on the wall/using the post
+     * several node.js modules for dealing with uploaded files
+     *
+     * multer
+     * https://www.npmjs.com/package/multer
+     * multiparty
+     * https://www.npmjs.com/package/multiparty
+     * busyboy
+     * https://www.npmjs.com/package/busboy
+     * formidable
+     * https://www.npmjs.com/package/formidable
+     *
+     * TODO an error during upload will throw and it will be displayed
+     * using the generic error handler; I should prob check file sizes
+     * and types on frontend before sending the file and I should display
+     * a nice message instead (or maybe use flash messages as well)
+     *
+     * if fileFilter rejects file nothing will be displayed
+     * if it throws then the ugly message will show
+     *
+     * I guess flash messages won't be too hard to implement
+     * do something similar to welcome page and just set them
+     * whenever there's an error (in mainstore); they get deleted
+     * after one use anyway
+     * */
+
+    /* if user is not logged in - nothing to submit */
+    if (typeof(req.session["auth"]) == "undefined"){
+	res.redirect("/");
+	return;
+    }
+
+    /*
+     * TODO delete photos without description here
+     * !("post_pic_desc" in req.body) ... like above
+     * */
+
+    /* after photo has been added to db */
+    req.once("photo", (ret) => {
+	if (ret["success"] === false) {
+	    res.redirect("/");
+	    return;
+	}
+
+	/* add post to db */
+	let post_data = {
+	    uid: req.session.auth.uid,
+	    isText: false,
+	    post_text: "",
+	    avatar: req.session.auth["avatar"],
+	    photo: ret.photo_id
+	};
+	posts.submit_post(post_data, req, "post");
+    });
+    req.once("post", (ret) => {
+	res.redirect("/");
+    });
+    /* add photo to db */
+    let photo_data = {
+	path: "photos/" + req.file.filename,
+	owner: req.session.auth.uid,
+	mimetype: req.file.mimetype,
+	description: req.body["post_pic_desc"],
+	size: req.file.size
+    };
+    photos.submit_photo(photo_data, req, "photo");
 });
 
 /*
@@ -350,7 +491,9 @@ app.get("/api/posts", function(req, res){
 	    get_user_info();
 	});
 	req.on("userLoopFinish", () => {
-	    //res.send(ret.posts.reverse());
+	    get_photo_info();
+	});
+	req.on("photoLoopFinish", () => {
 	    /* sort posts after timestamp */
 	    ret.posts.sort(function(a, b) {
 		return new Date(b.timestamp).getTime() -
@@ -360,17 +503,51 @@ app.get("/api/posts", function(req, res){
 	});
 	get_avatar_info();
 
+	/* if post is picture, add picture path and description */
+	function get_photo_info() {
+	    /* count how many photos */
+	    let num_photos = 0, num_updated = 0;
+	    for (let i = 0; i < ret.posts.length; i++) {
+		if (ret.posts[i].isText === false)
+		    num_photos++;
+	    }
+	    req.on("photoLoopElem", (result) => {
+		if (result.success === false) {
+		    /* ignore for now */
+		    return;
+		}
+		let index = result.args.index;
+		ret.posts[index]["photoUrl"] = result["path"];
+		ret.posts[index]["text"] = result["description"];
+		num_updated++;
+		if (num_updated == num_photos) {
+		    req.emit("photoLoopFinish");
+		    delete req.index;
+		}
+	    });
+	    for (let i = 0; i < ret.posts.length; i++) {
+		if (ret.posts[i].isText === false) {
+		    photos.get_photo_info(ret.posts[i].photo,
+					  req, "photoLoopElem",
+					  {index: i});
+		}
+	    }
+	}
 	/* add avatarUrl to posts */
 	function get_avatar_info() {
 	    let j = 0;
 	    /* when avatarUrl is retrived for one element */
 	    req.on("avatarLoopElem", (result) => {
-		ret.posts[j++]["avatarUrl"] = result["photo_url"];
+		if (result.success === false) {
+		    /* ignore for now */
+		    return;
+		}
+		ret.posts[j++]["avatarUrl"] = result["path"];
 		if (j == ret.posts.length)
 		    req.emit("avatarLoopFinish");
 	    });
 	    for (let i = 0; i < ret.posts.length; i++) {
-		photos.get_photo_url(ret.posts[i].avatar,
+		photos.get_photo_info(ret.posts[i].avatar,
 				     req, "avatarLoopElem");
 	    }
 	}
@@ -379,6 +556,10 @@ app.get("/api/posts", function(req, res){
 	    let j = 0;
 	    /* when user info is retrived for one element */
 	    req.on("userLoopElem", (result) => {
+		if (result.success === false) {
+		    /* ignore for now */
+		    return;
+		}
 		ret.posts[j]["firstName"] = result["firstName"];
 		ret.posts[j]["lastName"] = result["lastName"];
 		j++;
@@ -407,6 +588,14 @@ app.get("/quiz", function(req, res) {
 app.use(function(err, req, res, next){
     /* generic error handler */
     console.error(err);
+    if (err.message == "File too large") {
+	/*
+	 * this will catch "file too big" errors
+	 * I guess I can set flash messages here as well
+	 * */
+	res.status(500).send("File size is too big. Maximum file size is 2MB");
+	return;
+    }
     res.status(500).send("Oops, something went wrong: " + err.message);
 });
 
