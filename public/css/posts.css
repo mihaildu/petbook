@@ -1,0 +1,110 @@
+/* styling for posts in newsview */
+
+.news-post {
+    width: 75%;
+    background-color: white;
+    /* center */
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.full-text {
+    display: none;
+}
+
+.short-text {
+    display: block;
+}
+
+.edit-text {
+    display: none;
+}
+
+.news-post-short {
+    //max-height: 220px;
+}
+
+.news-header {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+}
+
+.news-avatar {
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #E0E0E0;
+    margin: 5px;
+}
+
+.post-author {
+    margin-left: 10px;
+}
+
+.news-date {
+    color: #868686;
+    margin-left: auto;
+    margin-right: 10px;
+}
+
+.delete-post {
+    color: #868686;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+.edit-post {
+    color: #868686;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+.news-body {
+    text-align: left;
+    padding: 10px;
+}
+
+.news-img-div {
+    text-align: center;
+    margin-top: 5px;
+}
+
+.news-img {
+    max-width: 100%;
+    cursor: pointer;
+}
+
+#post-textarea, #edit-textarea {
+    height: 150px;
+}
+
+#save-btn, #cancel-btn {
+    margin-top: 10px;
+}
+
+#cancel-btn {
+    margin-left: 10px;
+}
+
+/*
+ * the X on top of each image
+ * maybe add some contrasting colors to it
+ * to make it visible on any image
+ * */
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+
+.modal-body{
+    padding: 0px;
+    margin: 0px;
+}

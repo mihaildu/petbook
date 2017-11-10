@@ -24,7 +24,7 @@ function MainView(props) {
 	      <SideBarView />
 	    </div>
 	    <div className="col-md-7">
-	      <WallView posts_data={posts_data} />
+	      <WallView posts_data={posts_data} auth_data={auth_data} />
 	    </div>
 	    <div className="col-md-3" id="chat-area">
 	      <ChatView />

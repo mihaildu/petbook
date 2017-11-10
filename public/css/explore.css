@@ -1,0 +1,23 @@
+#users {
+    margin-top: 10px;
+    display: flexbox;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.user-div {
+    width: 150px;
+    height: 200px;
+    display: inline-block;
+    text-align: center;
+    margin-right: 30px;
+}
+
+.user-img {
+    display: block;
+    width: 150px;
+    height: 150px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
+}

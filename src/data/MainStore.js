@@ -34,10 +34,14 @@ class MainStore extends ReduceStore {
 	 *   posts: posts (on the wall) data
 	 *     {
 	 *       view: what to show Text/Picture post
+	 *         "text", "pic", "timeline", "friends"
+	 *         TODO this needs to be split
 	 *       posts: [post, ...] list of posts to show
 	 *              eventually sorted
 	 *         post: {"_id", "uid", "text", "__v", "comments", "avatarUrl"}
 	 *     }
+	 *
+	 *   last_user: user data for last user page you visited
 	 *
 	 *   TODO friends: [{id, avatar, etc}]
 	 */
@@ -46,7 +50,9 @@ class MainStore extends ReduceStore {
 	    posts_data: {
 		view: "text",
 		posts: []
-	    }
+	    },
+	    last_user : {},
+	    users: []
 	});
     }
     reduce(state, action) {
@@ -68,6 +74,10 @@ class MainStore extends ReduceStore {
 	    Object.assign(new_posts_data, state.get("posts_data"));
 	    new_posts_data.posts = action.posts;
 	    return state.set("posts_data", new_posts_data);
+	case ActionTypes.UPDATE_LAST_USER:
+	    return state.set("last_user", action.data);
+	case ActionTypes.SET_USERS:
+	    return state.set("users", action.users);
 	default:
 	    return state;
 	}

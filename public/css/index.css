@@ -1,101 +1,13 @@
 /* file used on index.html/main view */
 
 /*
- * navbar specific settings
- * */
-
-/* align logo in center vertically */
-.navbar-brand {
-    display: flex;
-    align-items: center;
-}
-
-/* vertically center extra stuff on right */
-#extra-navbar {
-    line-height: 50px;
-    font-weight: bolder;
-    display: flex;
-    align-items: center;
-}
-.navbar-link {
-    display: flex;
-    align-items: center;
-    border-radius: 5px;
-    padding-left: 5px;
-    padding-right: 5px;
-    float: left;
-}
-
-/* navbar separators */
-.navbar-separator {
-    float: left;
-}
-
-/* change text color to white */
-.navbar-default .navbar-link {
-    color: white;
-}
-.navbar-default .navbar-link:hover {
-    color: white;
-    text-decoration: none;
-    background-color: #5ab7fd;
-}
-
-/* clear navbar div */
-#clear-navbar {
-    margin-top: 51px;
-}
-
-/* friend request image */
-#friend-request {
-    height: 30px;
-}
-
-/* navbar chat image */
-#navbar-chat {
-    height: 30px;
-}
-
-/*
- * make navbar form smaller (in height)
- * also, remove border
- * */
-.navbar-form {
-    margin-top: 0px;
-    margin-bottom: 0px;
-    border-top-width: 0px;
-}
-
-/* profile image in navbar */
-#navbar-profile-image {
-    /* old values */
-    //height: 40px;
-    //width: 40px;
-    //border-radius: 20px;
-    //background-color: white;
-
-    height: 35px;
-    width: 35px;
-    border-radius: 10px;
-    float: left;
-    margin-right: 10px;
-}
-
-
-
-/*
  * main view settings
  * */
 
 /* remove padding from cols */
-.col-md-2, .col-md-7, .col-md-3 {
+.col-md-2, .col-md-7, .col-md-3, .col-md-6 {
     padding-left: 0px;
     padding-right: 0px;
-}
-
-/* this contains all 3 views */
-#main-container {
-    margin-top: 60px;
 }
 
 /* customize the side bar list */
@@ -144,10 +56,6 @@ ul#side-bar-list li.selected {
     cursor: pointer;
 }
 
-#post-textarea, #edit-textarea {
-    height: 150px;
-}
-
 #post-btn-wrapper {
     text-align: left;
     background-color: #E0E0E0;
@@ -161,16 +69,16 @@ ul#side-bar-list li.selected {
     margin-left: 10px;
 }
 
-#save-btn, #cancel-btn {
-    margin-top: 10px;
-}
-
-#cancel-btn {
-    margin-left: 10px;
-}
-
 #file-upload {
     display: none;
+}
+
+#profile-picture-checkbox {
+    margin-left: 5px;
+    height: 35px;
+    display: flexbox;
+    align-items: center;
+    //font-size: 20px;
 }
 
 #file-upload-btn {
@@ -195,7 +103,7 @@ ul#side-bar-list li.selected {
 }
 
 #post-pic {
-    height: 150px;
+    height: 185px;
 }
 
 #post-pic-desc {
@@ -207,99 +115,9 @@ ul#side-bar-list li.selected {
     margin-top: 20px;
 }
 
-.news-post {
-    width: 75%;
-    background-color: white;
-    /* center */
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-}
-
-.full-text {
-    display: none;
-}
-
-.short-text {
-    display: block;
-}
-
-.edit-text {
-    display: none;
-}
-
-.news-post-short {
-    //max-height: 220px;
-}
-
-.news-header {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-}
-
-.news-avatar {
-    height: 40px;
-    border-radius: 20px;
-    border: 1px solid #E0E0E0;
-    margin: 5px;
-}
-
-.post-author {
+#checkbox-text {
     margin-left: 10px;
-}
-
-.news-date {
-    color: #868686;
-    margin-left: auto;
-    margin-right: 10px;
-}
-
-.delete-post {
-    color: #868686;
-    cursor: pointer;
-    margin-right: 10px;
-    margin-bottom: 5px;
-}
-
-.edit-post {
-    color: #868686;
-    cursor: pointer;
-    margin-right: 10px;
-    margin-bottom: 5px;
-}
-
-.news-body {
-    text-align: left;
-    padding: 10px;
-}
-
-.news-img-div {
-    text-align: center;
-    margin-top: 5px;
-}
-
-.news-img {
-    max-width: 100%;
-    cursor: pointer;
-}
-
-/*
- * the X on top of each image
- * maybe add some contrasting colors to it
- * to make it visible on any image
- * */
-.close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-}
-
-.modal-body{
-    padding: 0px;
-    margin: 0px;
+    //padding-bottom: 20px;
+    display: inline-block;
+    //margin-bottom: 100px;
 }

@@ -7,7 +7,9 @@ var express = require("express");
 var app = express();
 const port = 5000;
 
+const EventEmitter = require("events");
 const qs = require("querystring");
+
 const multer = require("multer");
 
 const login = require("my-util/login.js");
@@ -23,6 +25,7 @@ app.use(express.static(__dirname + "/public"));
 const index_path = __dirname + "/views/index.html";
 const welcome_path = __dirname + "/views/welcome.html";
 const user_path = __dirname + "/views/user.html";
+const explore_path = __dirname + "/views/explore.html";
 
 /*
  * maximum file size for uploads
@@ -59,7 +62,7 @@ app.get(["/", "/index", "/index.html"], function(req, res) {
     res.sendFile(welcome_path);
 });
 
-app.post(["/", "/index", "/index.html"], function(req, res){
+app.post(["/", "/index", "/index.html", "/user/:id"], function(req, res){
     /* get post data in async/flowing mode */
     let body = "";
     req.on("data", (chunk) => {
@@ -157,9 +160,8 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 		res.redirect(req.url);
 		return;
 	    }
-	    /* add user id and avatar id (for now) to data */
+	    /* add user id to data */
 	    post_data["uid"] = req.session.auth["uid"];
-	    post_data["avatar"] = req.session.auth["avatar"];
 	    /* this is a text post */
 	    post_data["isText"] = true;
 	    post_data["photo"] = null;
@@ -174,21 +176,23 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 		return;
 	    }
 	    /* this is like this for future updates */
-	    if(!["pid"].every(
+	    if(!["pid", "isText", "photo_id"].every(
 		prop => prop in post_data)){
 		console.error("incorrect post");
 		res.redirect(req.url);
 		return;
 	    }
-
-	    /*
-	     * TODO
-	     * if post is an image, should the image be deleted
-	     * as well?
-	     * */
-
 	    /* add uid as well - needed for permission checking */
 	    post_data["uid"] = req.session.auth["uid"];
+	    /*
+	     * for now, if the post is an image, delete the
+	     * image as well
+	     * "false" is from form (it gets converted)
+	     * */
+	    if (post_data.isText == "false") {
+		photos.delete_photo(post_data, req, "delete_photo");
+		return;
+	    }
 	    posts.delete_post(post_data, req, "post_text");
 	    return;
 	}
@@ -199,7 +203,7 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 		res.redirect("/");
 		return;
 	    }
-	    if(!["edit_text", "pid", "isText"].every(
+	    if(!["edit_text", "pid", "isText", "photo_id"].every(
 		prop => prop in post_data)){
 		console.error("incorrect post");
 		res.redirect(req.url);
@@ -209,8 +213,7 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 	    post_data["uid"] = req.session.auth["uid"];
 	    /* if it's a photo, description needs to be updated */
 	    if (post_data["isText"] == "false") {
-		/* TODO do nothing for now */
-		res.redirect("/");
+		photos.update_photo(post_data, req, "post_image");
 		return;
 	    }
 	    posts.update_post(post_data, req, "post_text");
@@ -293,7 +296,29 @@ app.post(["/", "/index", "/index.html"], function(req, res){
 	 * TODO maybe display errors to users if anything?
 	 * if (ret["success"] === true)
 	 * */
-	res.redirect("/");
+	res.redirect(req.url);
+    });
+    req.once("post_image", (ret, args) => {
+	/* maybe not update timestamp? */
+	post_data["edit_text"] = "";
+	posts.update_post(post_data, req, "post_text");
+    });
+    req.once("delete_photo", (ret, args) => {
+	/* if deleted photo was user avatar, change to default */
+	if (post_data.photo_id == req.session.auth.avatar) {
+	    req.session.auth.avatar = photos.default_avatar_id;
+	    req.session.auth.avatarUrl = photos.default_avatar_path;
+	    let data = {
+		uid: req.session.auth.uid,
+		photo_id: photos.default_avatar_id
+	    };
+	    users.update_avatar(data, req, "default_avatar");
+	} else {
+	    req.emit("default_avatar");
+	}
+    });
+    req.once("default_avatar", (ret) => {
+	posts.delete_post(post_data, req, "post_text");
     });
 });
 
@@ -384,35 +409,125 @@ app.post("/upload-post", upload_photo.single("file_upload"), (req, res) => {
      * !("post_pic_desc" in req.body) ... like above
      * */
 
+    let photo_id, avatarUrl;
     /* after photo has been added to db */
     req.once("photo", (ret) => {
 	if (ret["success"] === false) {
 	    res.redirect("/");
 	    return;
 	}
+	photo_id = ret.photo_id;
 
 	/* add post to db */
 	let post_data = {
 	    uid: req.session.auth.uid,
 	    isText: false,
 	    post_text: "",
-	    avatar: req.session.auth["avatar"],
 	    photo: ret.photo_id
 	};
 	posts.submit_post(post_data, req, "post");
     });
     req.once("post", (ret) => {
+	if (req.body.set_profile_picture == "on") {
+	    let data = {
+		uid: req.session.auth.uid,
+		photo_id: photo_id
+	    };
+	    users.update_avatar(data, req, "avatar");
+	    return;
+	}
+	res.redirect("/");
+    });
+    req.once("avatar", (ret) => {
+	req.session.auth.avatar = photo_id;
+	req.session.auth.avatarUrl = avatarUrl;
 	res.redirect("/");
     });
     /* add photo to db */
+    avatarUrl = "/photos/" + req.file.filename;
     let photo_data = {
-	path: "photos/" + req.file.filename,
+	path: avatarUrl,
 	owner: req.session.auth.uid,
 	mimetype: req.file.mimetype,
 	description: req.body["post_pic_desc"],
 	size: req.file.size
     };
     photos.submit_photo(photo_data, req, "photo");
+});
+
+/* user page */
+app.get("/user/:id", function(req, res){
+    /* session didn't start, something went wrong */
+    if (typeof(req.session) == "undefined"){
+	throw new Error("session didn't start");
+    }
+    /* if user is not logged in, redirect to "/" */
+    if (typeof(req.session["auth"]) == "undefined"){
+	res.redirect("/");
+	return;
+    }
+    req.once("last_user", (ret) => {
+	if (ret.success === false) {
+	    /*
+	     * TODO maybe something nicer
+	     * something like "Current page is unavailable"
+	     * or "User not found" with style etc
+	     * */
+	    res.send(ret.messages);
+	}
+	res.sendFile(user_path);
+    });
+    store_last_user(req, "last_user", req);
+});
+
+function store_last_user(ee, event, req) {
+    /* TODO decide where to place this */
+    /* get user info */
+    const store_emitter = new EventEmitter();
+    store_emitter.once("user", (ret) => {
+	if (ret.success === false) {
+	    let ret = {
+		success: false,
+		messages: ["User doesn't exist"]
+	    };
+	    ee.emit(event, ret);
+	    return;
+	}
+	/* save everything in session to be accessible in /api/user */
+	req.session.last_user = {
+	    uid: ret.uid,
+	    firstName: ret.firstName,
+	    lastName: ret.lastName,
+	    email: ret.email,
+	    type: ret.type,
+	    gender: ret.gender,
+	    birthday: ret.birthday,
+	    frients: ret.friends
+	};
+	/* get avatar path */
+	store_emitter.once("avatar", (ret) => {
+	    /* nothing to do on error */
+	    req.session.last_user.avatarUrl = ret.path;
+	    ee.emit(event, {success: true});
+	});
+	photos.get_photo_info(ret.avatar, store_emitter, "avatar");
+    });
+    users.get_user_info(req.params.id, store_emitter, "user");
+}
+
+/* explore page */
+app.get("/explore", function(req, res) {
+    /* session didn't start, something went wrong */
+    if (typeof(req.session) == "undefined"){
+	throw new Error("session didn't start");
+    }
+    /* if user is not logged in, redirect to "/" */
+    if (typeof(req.session["auth"]) == "undefined"){
+	res.redirect("/");
+	return;
+    }
+    /* else, show "explore.html" */
+    res.sendFile(explore_path);
 });
 
 /*
@@ -465,14 +580,38 @@ app.get("/api/posts", function(req, res){
 	res.send([]);
 	return;
     }
+    req.once("posts", (ret) => {
+	res.send(ret.posts);
+    });
+    get_posts(req.session.auth.uid, req, "posts");
+});
+
+app.get("/api/posts/:uid", function(req, res){
+    /* gets posts for uid */
+    if (typeof(req.session["auth"]) == "undefined"){
+	res.send([]);
+	return;
+    }
+    req.once("posts", (ret) => {
+	res.send(ret.posts);
+    });
+    get_posts(req.params.uid, req, "posts");
+});
+
+function get_posts(uid, ee, event) {
+    /*
+     * function that returns all the posts for uid
+     *
+     * TODO decide where to place this
+     * */
+    const posts_emitter = new EventEmitter();
     /* when we have posts from db */
-    req.once("posts", (ret, args) => {
+    posts_emitter.once("posts", (ret, args) => {
 	/* on failure, ret.posts should be [] */
 	if (ret.posts.length == 0) {
-	    res.send([]);
+	    ee.emit(event, {posts: []});
 	    return;
 	}
-
 	/*
 	 * we need avatar and user info for each post
 	 * req is used as event emitter for both
@@ -487,21 +626,21 @@ app.get("/api/posts", function(req, res){
 	 *
 	 * also, should this (sorting) be performed on the frontend?
 	 * */
-	req.on("avatarLoopFinish", () => {
-	    get_user_info();
+	posts_emitter.on("userLoopFinish", () => {
+	    get_avatar_info();
 	});
-	req.on("userLoopFinish", () => {
+	posts_emitter.on("avatarLoopFinish", () => {
 	    get_photo_info();
 	});
-	req.on("photoLoopFinish", () => {
+	posts_emitter.on("photoLoopFinish", () => {
 	    /* sort posts after timestamp */
 	    ret.posts.sort(function(a, b) {
 		return new Date(b.timestamp).getTime() -
 		    new Date(a.timestamp).getTime();
 	    });
-	    res.send(ret.posts);
+	    ee.emit(event, {posts: ret.posts});
 	});
-	get_avatar_info();
+	get_user_info();
 
 	/* if post is picture, add picture path and description */
 	function get_photo_info() {
@@ -511,7 +650,10 @@ app.get("/api/posts", function(req, res){
 		if (ret.posts[i].isText === false)
 		    num_photos++;
 	    }
-	    req.on("photoLoopElem", (result) => {
+	    if (num_photos === 0)
+		posts_emitter.emit("photoLoopFinish");
+
+	    posts_emitter.on("photoLoopElem", (result) => {
 		if (result.success === false) {
 		    /* ignore for now */
 		    return;
@@ -521,14 +663,13 @@ app.get("/api/posts", function(req, res){
 		ret.posts[index]["text"] = result["description"];
 		num_updated++;
 		if (num_updated == num_photos) {
-		    req.emit("photoLoopFinish");
-		    delete req.index;
+		    posts_emitter.emit("photoLoopFinish");
 		}
 	    });
 	    for (let i = 0; i < ret.posts.length; i++) {
 		if (ret.posts[i].isText === false) {
 		    photos.get_photo_info(ret.posts[i].photo,
-					  req, "photoLoopElem",
+					  posts_emitter, "photoLoopElem",
 					  {index: i});
 		}
 	    }
@@ -537,42 +678,119 @@ app.get("/api/posts", function(req, res){
 	function get_avatar_info() {
 	    let j = 0;
 	    /* when avatarUrl is retrived for one element */
-	    req.on("avatarLoopElem", (result) => {
+	    posts_emitter.on("avatarLoopElem", (result) => {
 		if (result.success === false) {
 		    /* ignore for now */
 		    return;
 		}
 		ret.posts[j++]["avatarUrl"] = result["path"];
 		if (j == ret.posts.length)
-		    req.emit("avatarLoopFinish");
+		    posts_emitter.emit("avatarLoopFinish");
 	    });
 	    for (let i = 0; i < ret.posts.length; i++) {
 		photos.get_photo_info(ret.posts[i].avatar,
-				     req, "avatarLoopElem");
+				      posts_emitter, "avatarLoopElem");
 	    }
 	}
 	/* add firstName and lastName to posts */
 	function get_user_info() {
 	    let j = 0;
 	    /* when user info is retrived for one element */
-	    req.on("userLoopElem", (result) => {
+	    posts_emitter.on("userLoopElem", (result) => {
 		if (result.success === false) {
 		    /* ignore for now */
 		    return;
 		}
 		ret.posts[j]["firstName"] = result["firstName"];
 		ret.posts[j]["lastName"] = result["lastName"];
+		ret.posts[j]["avatar"] = result["avatar"];
 		j++;
 		if (j == ret.posts.length)
-		    req.emit("userLoopFinish");
+		    posts_emitter.emit("userLoopFinish");
 	    });
 	    for (let i = 0; i < ret.posts.length; i++) {
-		users.get_user_info(ret.posts[i].uid, req, "userLoopElem");
+		users.get_user_info(ret.posts[i].uid, posts_emitter,
+				    "userLoopElem");
 	    }
 	}
     });
     /* get posts from db */
-    posts.get_posts(req.session.auth.uid, req, "posts");
+    posts.get_posts(uid, posts_emitter, "posts");
+}
+
+app.get("/api/user/:id", function(req, res){
+    if (typeof(req.session) == "undefined"){
+	res.redirect("/");
+	return;
+    }
+    if (typeof(req.session["auth"]) == "undefined"){
+	res.redirect("/");
+	return;
+    }
+    req.once("last_user", (ret) => {
+	res.send(req.session["last_user"]);
+    });
+    if (typeof(req.session["last_user"]) == "undefined"){
+	store_last_user(req, "last_user", req);
+    } else {
+	req.emit("last_user", {success: true});
+    }
+});
+
+app.get("/api/users", function(req, res){
+    /* gets info on all users (e.g. when exploring) */
+    if (typeof(req.session) == "undefined"){
+	res.redirect("/");
+	return;
+    }
+    if (typeof(req.session["auth"]) == "undefined"){
+	res.redirect("/");
+	return;
+    }
+
+    let user_lst = [], num_updated = 0;
+    const users_emitter = new EventEmitter();
+    users_emitter.on("avatarLoopFinish", () => {
+	/* TODO sort after registration time? */
+	res.send(user_lst);
+    });
+    users_emitter.on("avatarLoopElem", (result) => {
+	if (result.success === false) {
+	    /* ignore for now */
+	    return;
+	}
+	let index = result.args.index;
+	user_lst[index]["avatarUrl"] = result["path"];
+	num_updated++;
+	if (num_updated == user_lst.length) {
+	    users_emitter.emit("avatarLoopFinish");
+	}
+    });
+    users_emitter.on("users", (ret) => {
+	/*
+	 * TODO decide what to keep here
+	 * e.g. don't return hashed password
+	 * */
+	ret.users.forEach(function(elem){
+	    user_lst.push({
+		id: elem.id,
+		firstName: elem.firstName,
+		lastName: elem.lastName,
+		email: elem.email,
+		type: elem.type,
+		gender: elem.gender,
+		birthday: elem.birthday,
+		friends: elem.friends,
+		avatar: elem.avatar
+	    });
+	});
+	/* add avatarUrl */
+	for (let i = 0; i < user_lst.length; i++) {
+	    photos.get_photo_info(user_lst[i].avatar, users_emitter,
+				  "avatarLoopElem", {index: i});
+	}
+    });
+    users.get_users(users_emitter, "users");
 });
 
 /* TODO maybe delete this */

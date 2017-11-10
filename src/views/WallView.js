@@ -72,7 +72,7 @@ function WallView(props) {
     /* main pic area in post box (picture tab) */
     const pic_form = (
 	<form method="post" id="wall-form" action="/upload-post"
-	      enctype="multipart/form-data">
+	      encType="multipart/form-data">
 	  <div id="post-box">
 	    {nav_tabs}
 	    <div id="post-pic">
@@ -83,8 +83,15 @@ function WallView(props) {
 		  </div>
 		  <span id="file-upload-target">No file chosen</span>
 		</label>
-
 	      </div>
+	      <div className="form-check" id="profile-picture-checkbox">
+		<label className="form-check-label">
+		  <input type="checkbox" className="form-check-input"
+			 name="set_profile_picture"/>
+		    <span id="checkbox-text">Set as profile picture</span>
+		</label>
+	      </div>
+
 	      <textarea className="form-control" name="post_pic_desc"
 			id="post-pic-desc"
 			placeholder="Enter picture description">
@@ -92,6 +99,7 @@ function WallView(props) {
 	      <input id="file-upload" type="file" name="file_upload"
 		     accept=".jpg, .jpeg, .png"
 		     onChange={file_upload_change} />
+
 	    </div>
 	    {post_btn}
 	  </div>
@@ -101,7 +109,8 @@ function WallView(props) {
     return (
 	<div id="wall">
 	  {input_form}
-	  <NewsView posts={props.posts_data.posts} />
+	  <NewsView posts={props.posts_data.posts}
+		    auth_data={props.auth_data} />
 	</div>
     );
 }

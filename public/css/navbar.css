@@ -1,0 +1,78 @@
+/* the navbar after the user logs in */
+
+/* align logo in center vertically */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+}
+
+/* vertically center extra stuff on right */
+#extra-navbar {
+    line-height: 50px;
+    font-weight: bolder;
+    display: flex;
+    align-items: center;
+}
+.navbar-link {
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    float: left;
+}
+
+/* navbar separators */
+.navbar-separator {
+    float: left;
+}
+
+/* change text color to white */
+.navbar-default .navbar-link {
+    color: white;
+}
+.navbar-default .navbar-link:hover {
+    color: white;
+    text-decoration: none;
+    background-color: #5ab7fd;
+}
+
+/* clear navbar div */
+#clear-navbar {
+    margin-top: 51px;
+}
+
+/* friend request image */
+#friend-request {
+    height: 30px;
+}
+
+/* navbar chat image */
+#navbar-chat {
+    height: 30px;
+}
+
+/*
+ * make navbar form smaller (in height)
+ * also, remove border
+ * */
+.navbar-form {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    border-top-width: 0px;
+}
+
+/* profile image in navbar */
+#navbar-profile-image {
+    /* old values */
+    //height: 40px;
+    //width: 40px;
+    //border-radius: 20px;
+    //background-color: white;
+
+    height: 35px;
+    width: 35px;
+    border-radius: 10px;
+    float: left;
+    margin-right: 10px;
+}

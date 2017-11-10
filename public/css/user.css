@@ -1,0 +1,123 @@
+/* remove padding from cols */
+.col-md-2, .col-md-7, .col-md-3, .col-md-6 {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+/*
+ * #868686
+ * #E0E0E0
+ */
+
+#about-view {
+    margin-top: 10px;
+    background-color: white;
+    //border: 1px solid #868686;
+    //border: 1px solid #E0E0E0;
+    //background-color: #E0E0E0;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px;
+    //display: flex;
+    //flex-wrap: wrap;
+}
+
+#profile-picture {
+    //max-width: 200px;
+    //max-height: 200px;
+    width: 200px;
+    height: 200px;
+    //display: inline-block;
+    //display: block;
+    margin-right: 30px;
+    //margin-right: 100px;
+    //border: 1px solid black;
+    border: 1px solid #868686;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+#name {
+    //font-size: 25px;
+    font-size: 20px;
+    display: inline-block;
+    //width: 100%;
+    //color: #868686;
+}
+
+#other-info {
+    margin-top: 40px;
+    //background-color: white;
+
+    //background-color: #E0E0E0;
+    //padding: 10px;
+    border-radius: 10px;
+    //border: 1px solid #868686;
+    //border: 1px solid #ddd;
+    //border: 1px solid ;
+}
+
+#about-me,
+#email,
+#type,
+#gender,
+#bday {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    //justify-content: center;
+}
+
+#about-me,
+#email,
+#type,
+#gender {
+    //border-bottom: 1px solid #868686;
+    border-bottom: 1px solid #ddd;
+}
+
+#about-me {
+    //margin-top: 15px;
+}
+
+#email {
+    
+}
+
+.info-item {
+    //font-size: 18px;
+    font-size: 14px;
+    //margin-bottom: 20px;
+    //border-bottom: 1px solid #868686;
+    //font-style: italic;
+    //color: red;
+    //color: #868686;
+}
+
+/* avatar modal */
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+
+.modal-body{
+    padding: 0px;
+    margin: 0px;
+}
+
+#news-header {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#news-header a {
+    cursor: pointer;
+}
+
+.news-post {
+    width: 95%;
+}

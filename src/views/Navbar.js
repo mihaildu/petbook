@@ -17,7 +17,7 @@ function Navbar(props) {
     } else if (props.logo == "img") {
 	logo = (
 	    <div id="logo">
-	      <img src="imgs/petbook-logo-inverted.png" />
+	      <img src="/imgs/petbook-logo-inverted.png" />
 	    </div>
 	);
     }
@@ -54,27 +54,28 @@ function Navbar(props) {
 	 * */
 	extra = (
 	    <div className="navbar-right" id="extra-navbar">
-	      <a title="Explore" className="navbar-link" href="/">
+	      <a title="Explore" className="navbar-link" href="/explore">
 		Explore
 	      </a>
-	      <img className="navbar-separator" src="icos/vert-favicon.ico"/>
-	      <a title="Profile" className="navbar-link" href="/">
+	      <img className="navbar-separator" src="/icos/vert-favicon.ico"/>
+	      <a title="Profile" className="navbar-link"
+		 href={"/user/" + props.auth.uid}>
 		<img src={props.auth.avatarUrl} id="navbar-profile-image" />
 		{props.auth.firstName}
 	      </a>
-	      <img className="navbar-separator" src="icos/vert-favicon.ico"/>
+	      <img className="navbar-separator" src="/icos/vert-favicon.ico"/>
 	      <a title="Home" className="navbar-link" href="/">
 		Home
 	      </a>
-	      <img className="navbar-separator" src="icos/vert-favicon.ico"/>
-	      <a title="Friend Requests" className="navbar-link" href="/">
-		<img id="friend-request" src="imgs/pet-friend-req.png"/>
+	      <img className="navbar-separator" src="/icos/vert-favicon.ico"/>
+	      <a title="Friend Requests" className="navbar-link" href="#">
+		<img id="friend-request" src="/imgs/pet-friend-req.png"/>
 	      </a>
-	      <img className="navbar-separator" src="icos/vert-favicon.ico"/>
-	      <a title="Chat" className="navbar-link" href="/">
-		<img id="navbar-chat" src="imgs/chat.png"/>
+	      <img className="navbar-separator" src="/icos/vert-favicon.ico"/>
+	      <a title="Chat" className="navbar-link" href="#">
+		<img id="navbar-chat" src="/imgs/chat.png"/>
 	      </a>
-	      <form className="navbar-form" method="post">
+	      <form className="navbar-form" method="post" action="/">
 		<button name="submit_logout" type="submit"
 			className="form-group btn btn-default">
 		  Log out

@@ -6,7 +6,9 @@ module.exports = {
     devtool: debug ? "inline-sourcemap" : false,
     entry: {
 	welcome: "./src/welcome.js",
-	index: "./src/index.js"
+	index: "./src/index.js",
+	user: "./src/user.js",
+	explore: "./src/explore.js"
     },
     module: {
 	rules: [

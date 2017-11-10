@@ -109,6 +109,9 @@ function NewsView(props) {
 
     /* TODO auto-scrolling or limit the number of posts/make pages */
     const posts = props.posts.map(post => {
+	if (post.photo === null)
+	    post.photo = "";
+
 	let id = 0, post_image = null;
 	if (post.isText === false) {
 	    /* TODO make sure the image works fine on mobile */
@@ -159,6 +162,28 @@ function NewsView(props) {
 	}
 	const timestamp = new Date(post.timestamp).toLocaleString(
 	    "en-US", date_options);
+	let edit_icon = null, delete_icon = null;
+	if (post.uid == props.auth_data.uid) {
+	    edit_icon = (
+		<span className="glyphicon glyphicon-edit edit-post"
+		      title="Edit"
+		      onClick={(e) => edit_post(e, post.id)}>
+		</span>
+	    );
+	    delete_icon = (
+		<form method="post" className="delete-post-form">
+		  <span className="glyphicon glyphicon-remove delete-post"
+			title="Delete"
+			onClick={(e) => delete_post(e, post.id)}>
+		  </span>
+		  <input type="hidden" name="pid" value={post.id} />
+		  <input type="hidden" name="isText" value={post.isText} />
+		  <input type="hidden" name="photo_id" value={post.photo} />
+		  <input type="hidden" name="photo_url" value={post.photoUrl}/>
+		  <input type="hidden" name="submit_delete_post"/>
+		</form>
+	    );
+	}
 	return (
 	    <div id={post.id} key={post.id}
 		 className="news-post">
@@ -170,18 +195,8 @@ function NewsView(props) {
 		<div className="news-date">
 		  {timestamp}
 		</div>
-		<span className="glyphicon glyphicon-edit edit-post"
-		      title="Edit"
-		      onClick={(e) => edit_post(e, post.id)}>
-		</span>
-		<form method="post" className="delete-post-form">
-		  <span className="glyphicon glyphicon-remove delete-post"
-			title="Delete"
-			onClick={(e) => delete_post(e, post.id)}>
-		  </span>
-		  <input type="hidden" name="pid" value={post.id} />
-		  <input type="hidden" name="submit_delete_post"/>
-		</form>
+		{edit_icon}
+		{delete_icon}
 	      </div>
 	      <div className="news-body">
 		<div className="full-text">
@@ -194,6 +209,7 @@ function NewsView(props) {
 		  <form method="post" className="edit-post-form">
 		    <input type="hidden" name="pid" value={post.id} />
 		    <input type="hidden" name="isText" value={post.isText} />
+		    <input type="hidden" name="photo_id" value={post.photo} />
 		    <textarea className="form-control" name="edit_text"
 			      id="edit-textarea">
 		    </textarea>

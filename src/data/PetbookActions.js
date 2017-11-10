@@ -5,7 +5,9 @@ const ActionTypes = {
     UPDATE_VALUES: "UPDATE_VALUES",
     UPDATE_AUTH: "UPDATE_AUTH",
     CHANGE_POST_VIEW: "CHANGE_POST_VIEW",
-    SET_POSTS: "SET_POSTS"
+    SET_POSTS: "SET_POSTS",
+    UPDATE_LAST_USER: "UPDATE_LAST_USER",
+    SET_USERS: "SET_USERS"
 };
 
 const Actions = {
@@ -37,6 +39,18 @@ const Actions = {
 	PetbookDispatcher.dispatch({
 	    type: ActionTypes.SET_POSTS,
 	    posts
+	});
+    },
+    update_last_user(data) {
+	PetbookDispatcher.dispatch({
+	    type: ActionTypes.UPDATE_LAST_USER,
+	    data
+	});
+    },
+    set_users(users) {
+	PetbookDispatcher.dispatch({
+	    type: ActionTypes.SET_USERS,
+	    users
 	});
     }
 };
