@@ -21,6 +21,21 @@ const users = require("my-util/users.js");
 app.set("port", (process.env.PORT || port));
 app.use(express.static(__dirname + "/public"));
 
+/* temporary solution to store photos - using dropbox */
+app.use("/photos", (req, res, next) => {
+    let Dropbox = require("dropbox");
+    let dbx = new Dropbox({
+	accessToken: process.env.DROPBOX_TOKEN
+    });
+    dbx.filesDownload({path: req.originalUrl})
+	.then(function(response) {
+	    res.end(response.fileBinary, "binary");
+	})
+	.catch(function(error){
+	    res.status(404).send("Not found");
+	});
+});
+
 /* file paths for views */
 const index_path = __dirname + "/views/index.html";
 const welcome_path = __dirname + "/views/welcome.html";
