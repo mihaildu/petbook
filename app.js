@@ -11,6 +11,10 @@ const EventEmitter = require("events");
 const qs = require("querystring");
 
 const multer = require("multer");
+const dropbox = require("dropbox");
+let dbx = new dropbox({
+    accessToken: process.env.DROPBOX_TOKEN
+});
 
 const login = require("my-util/login.js");
 const signup = require("my-util/signup.js");
@@ -23,10 +27,6 @@ app.use(express.static(__dirname + "/public"));
 
 /* temporary solution to store photos - using dropbox */
 app.use("/photos", (req, res, next) => {
-    let Dropbox = require("dropbox");
-    let dbx = new Dropbox({
-	accessToken: process.env.DROPBOX_TOKEN
-    });
     dbx.filesDownload({path: req.originalUrl})
 	.then(function(response) {
 	    res.end(response.fileBinary, "binary");
@@ -338,8 +338,20 @@ app.post(["/", "/index", "/index.html", "/user/:id"], function(req, res){
 });
 
 /* multer object for uploading photos */
+const my_storage = multer.memoryStorage();
 const upload_photo = multer({
-    dest: "public/photos/",
+    /*
+     * specifying "dest" will use DiskStorage
+     * I guess this saves the file to the disk before the post handler
+     *
+     * while "storage" will use MemoryStorage
+     * in post handler, req.buffer will be the file data
+     *
+     * for now don't save file to disk and upload buffer to
+     * dropbox
+     */
+    //dest: "public/photos/",
+    storage: multer.memoryStorage(),
     fileFilter: (req, file, cb) => {
 	/*
 	 * this is to block non-users from uploading
@@ -364,7 +376,6 @@ const upload_photo = multer({
 	    cb(new Error("Pictures without description are not allowed"));
 	    return;
 	}
-
 	const tokens = file.originalname.split(".");
 	const extension = tokens[tokens.length - 1];
 	const allowed_extensions = ["png", "jpg", "jpeg"];
@@ -418,13 +429,31 @@ app.post("/upload-post", upload_photo.single("file_upload"), (req, res) => {
 	res.redirect("/");
 	return;
     }
-
     /*
      * TODO delete photos without description here
      * !("post_pic_desc" in req.body) ... like above
+     *
+     * or just use "storage" instead of "dest" and check body
+     * here; if it's empty - don't save file
      * */
 
-    let photo_id, avatarUrl;
+    let photo_id, dst_fname;
+    /* after photo has been uploaded to dropbox */
+    req.once("dropbox", (ret) => {
+	if (ret["success"] === false) {
+	    res.redirect("/");
+	    return;
+	}
+	/* add photo to db */
+	let photo_data = {
+	    path: dst_fname,
+	    owner: req.session.auth.uid,
+	    mimetype: req.file.mimetype,
+	    description: req.body["post_pic_desc"],
+	    size: req.file.size
+	};
+	photos.submit_photo(photo_data, req, "photo");
+    });
     /* after photo has been added to db */
     req.once("photo", (ret) => {
 	if (ret["success"] === false) {
@@ -432,7 +461,6 @@ app.post("/upload-post", upload_photo.single("file_upload"), (req, res) => {
 	    return;
 	}
 	photo_id = ret.photo_id;
-
 	/* add post to db */
 	let post_data = {
 	    uid: req.session.auth.uid,
@@ -455,19 +483,19 @@ app.post("/upload-post", upload_photo.single("file_upload"), (req, res) => {
     });
     req.once("avatar", (ret) => {
 	req.session.auth.avatar = photo_id;
-	req.session.auth.avatarUrl = avatarUrl;
+	req.session.auth.avatarUrl = dst_fname;
 	res.redirect("/");
     });
-    /* add photo to db */
-    avatarUrl = "/photos/" + req.file.filename;
-    let photo_data = {
-	path: avatarUrl,
-	owner: req.session.auth.uid,
-	mimetype: req.file.mimetype,
-	description: req.body["post_pic_desc"],
-	size: req.file.size
-    };
-    photos.submit_photo(photo_data, req, "photo");
+
+    /* first upload file to dropbox */
+    dst_fname = "/photos/" + req.file.fieldname + "_" + Date.now();
+    dbx.filesUpload({path: dst_fname, contents: req.file.buffer})
+	.then(function (response) {
+	    req.emit("dropbox", {success: true});
+	})
+	.catch(function (err) {
+	    req.emit("dropbox", {success: false});
+	});
 });
 
 /* user page */
