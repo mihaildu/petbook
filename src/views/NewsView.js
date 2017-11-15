@@ -93,7 +93,9 @@ function NewsView(props) {
     function image_click(id) {
 	let modal_id = "#img-modal-" + id;
 	let img_elem = document.getElementById("img-" + id);
-	let new_width = img_elem.naturalWidth + 2;
+	/* take min between 95% * device_width and image width */
+	let new_width = Math.min(img_elem.naturalWidth + 2,
+				 (95 * window.screen.width) / 100);
 	/*
 	 * TODO this should be done only once
 	 * maybe run once after page finished loading

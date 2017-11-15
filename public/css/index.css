@@ -52,6 +52,16 @@ ul#side-bar-list li.selected {
     width: 75%;
 }
 
+/*
+ * for an explanation:
+ * same media query from posts.css
+ * */
+@media (max-width: 991px) {
+    #post-box {
+	width: 100%;
+    }
+}
+
 #post-header a {
     cursor: pointer;
 }

@@ -11,6 +11,22 @@
     border-radius: 5px;
 }
 
+/*
+ * this is when the col-mds go underneath each other
+ * in bootstrap this happens at min-width of @screen-md-min
+ * which is 992px
+ *
+ * it's a little hardcoded right now, but a variable can be
+ * used for less/sass
+ *
+ * this will remove the margins for wall on mobile devices
+ * */
+@media (max-width: 991px) {
+    .news-post {
+	width: 100%;
+    }
+}
+
 .full-text {
     display: none;
 }
@@ -98,13 +114,20 @@
  * to make it visible on any image
  * */
 .close {
-  position: absolute;
+  position: fixed;
   top: 10px;
   right: 10px;
   cursor: pointer;
 }
 
-.modal-body{
+/* might want rounded edges for modals */
+.modal-dialog {
+    //border-radius: 10px;
+}
+
+.modal-body {
     padding: 0px;
     margin: 0px;
+    overflow-x: auto;
+    //border-radius: 10px;
 }
