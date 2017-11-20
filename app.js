@@ -21,6 +21,7 @@ const signup = require("my-util/signup.js");
 const photos = require("my-util/photos.js");
 const posts = require("my-util/posts.js");
 const users = require("my-util/users.js");
+const friend_requests = require("my-util/friend_requests.js");
 
 app.set("port", (process.env.PORT || port));
 app.use(express.static(__dirname + "/public"));
@@ -78,6 +79,8 @@ app.get(["/", "/index", "/index.html"], function(req, res) {
 });
 
 app.post(["/", "/index", "/index.html", "/user/:id"], function(req, res){
+    /* TODO split this function into multiple smaller ones */
+
     /* get post data in async/flowing mode */
     let body = "";
     req.on("data", (chunk) => {
@@ -526,7 +529,30 @@ app.get("/user/:id", function(req, res){
 function store_last_user(ee, event, req) {
     /* TODO decide where to place this */
     /* get user info */
+    let friends, num_updated = 0;
     const store_emitter = new EventEmitter();
+    /* after we have friends info */
+    store_emitter.on("friends", (ret) => {
+	/*
+	 * again, nothing to do on errors and nothing to
+	 * update here, we passed friends list by reference,
+	 * so we just need to return auth
+	 * */
+	ee.emit(event, {success: true});
+    });
+    /* after we have avatar path */
+    store_emitter.once("avatar", (ret) => {
+	/* nothing to do on error */
+	req.session.last_user.avatarUrl = ret.path;
+	if (req.session.last_user.friends.length == 0) {
+	    ee.emit(event, {success: true});
+	    return;
+	}
+	/* get friends info */
+	update_user_list(req.session.last_user.friends,
+			 store_emitter, "friends");
+    });
+    /* after we have user info */
     store_emitter.once("user", (ret) => {
 	if (ret.success === false) {
 	    let ret = {
@@ -545,18 +571,187 @@ function store_last_user(ee, event, req) {
 	    type: ret.type,
 	    gender: ret.gender,
 	    birthday: ret.birthday,
-	    frients: ret.friends
+	    friends: ret.friends
 	};
 	/* get avatar path */
-	store_emitter.once("avatar", (ret) => {
-	    /* nothing to do on error */
-	    req.session.last_user.avatarUrl = ret.path;
-	    ee.emit(event, {success: true});
-	});
 	photos.get_photo_info(ret.avatar, store_emitter, "avatar");
     });
+    /* get user info */
     users.get_user_info(req.params.id, store_emitter, "user");
 }
+
+app.post("/add-friend", function(req, res){
+    /* add a new friend request for user */
+    if (typeof(req.session.auth) == "undefined"){
+	res.send({success: false});
+	return;
+    }
+    /* get post data */
+    let body = "";
+    req.on("data", (chunk) => {
+	let chunk_str = chunk.toString();
+	body += chunk_str;
+    });
+    let post_data;
+    req.on("end", () => {
+	post_data = qs.parse(body);
+	/* check if post was done correctly */
+	if (!["to", "from"].every(prop => prop in post_data)){
+	    console.error("incorrect post: bad fields in post_data");
+	    res.send({success: false});
+	    return;
+	}
+	/* "from" should be the currently logged in user */
+	if (post_data["from"] != req.session.auth.uid) {
+	    console.error("incorrect post: bad 'from' user in post_data");
+	    res.send({success: false});
+	    return;
+	}
+	friend_requests.add_request(post_data, req, "friend_request");
+    });
+    req.once("friend_request", (ret, args) => {
+	res.send(ret);
+    });
+});
+
+app.post("/accept-friend", function(req, res){
+    /* accept friend request for user */
+    if (typeof(req.session.auth) == "undefined"){
+	res.send({success: false});
+	return;
+    }
+    /* get post data */
+    let body = "";
+    req.on("data", (chunk) => {
+	let chunk_str = chunk.toString();
+	body += chunk_str;
+    });
+    let post_data;
+    req.on("end", () => {
+	post_data = qs.parse(body);
+	/* check if post was done correctly */
+	if (!["to", "from"].every(prop => prop in post_data)){
+	    console.error("incorrect post: bad fields in post_data");
+	    res.send({success: false});
+	    return;
+	}
+	/* "to" should be the currently logged in user */
+	if (post_data["to"] != req.session.auth.uid) {
+	    console.error("incorrect post: bad 'to' user in post_data");
+	    res.send({success: false});
+	    return;
+	}
+	/* I think this is still needed for friends lists */
+	if (post_data["to"] == post_data["from"]) {
+	    console.error("incorrect post: 'to' and 'from' are same users");
+	    res.send({success: false});
+	    return;
+	}
+	friend_requests.accept_request(post_data, req, "friend_request");
+    });
+    req.once("friend_request", (ret, args) => {
+	if (ret.success === false) {
+	    res.send(ret);
+	    return;
+	}
+	users.add_friend(post_data.to, post_data.from, req, "friend1");
+    });
+    req.once("friend1", (ret, args) => {
+	if (ret.success === false) {
+	    res.send(ret);
+	    return;
+	}
+	users.add_friend(post_data.from, post_data.to, req, "friend2");
+    });
+    req.once("friend2", (ret, args) => {
+	res.send(ret);
+    });
+});
+
+app.post("/reject-friend", function(req, res){
+    /* reject friend request for user */
+    if (typeof(req.session.auth) == "undefined"){
+	res.send({success: false});
+	return;
+    }
+    /* get post data */
+    let body = "";
+    req.on("data", (chunk) => {
+	let chunk_str = chunk.toString();
+	body += chunk_str;
+    });
+    let post_data;
+    req.on("end", () => {
+	post_data = qs.parse(body);
+	/* check if post was done correctly */
+	if (!["to", "from"].every(prop => prop in post_data)){
+	    console.error("incorrect post: bad fields in post_data");
+	    res.send({success: false});
+	    return;
+	}
+	/* "to" should be the currently logged in user */
+	if (post_data["to"] != req.session.auth.uid) {
+	    console.error("incorrect post: bad 'to' user in post_data");
+	    res.send({success: false});
+	    return;
+	}
+	/*
+	 * normally there won't be any friend requests in the db with
+	 * the same "from" and "to", but I guess it's a little faster
+	 * if we check here
+	 * */
+	if (post_data["to"] == post_data["from"]) {
+	    console.error("incorrect post: 'to' and 'from' are same users");
+	    res.send({success: false});
+	    return;
+	}
+	friend_requests.reject_request(post_data, req, "friend_request");
+    });
+    req.once("friend_request", (ret, args) => {
+	res.send(ret);
+    });
+});
+
+app.post("/unfriend", function(req, res){
+    /* unfriends 2 users */
+    if (typeof(req.session.auth) == "undefined"){
+	res.send({success: false});
+	return;
+    }
+    /* get post data */
+    let body = "";
+    req.on("data", (chunk) => {
+	let chunk_str = chunk.toString();
+	body += chunk_str;
+    });
+    let post_data;
+    req.on("end", () => {
+	post_data = qs.parse(body);
+	/* check if post was done correctly */
+	if (!["to", "from"].every(prop => prop in post_data)){
+	    console.error("incorrect post: bad fields in post_data");
+	    res.send({success: false});
+	    return;
+	}
+	/* "from" should be the currently logged in user */
+	if (post_data["from"] != req.session.auth.uid) {
+	    console.error("incorrect post: bad 'from' user in post_data");
+	    res.send({success: false});
+	    return;
+	}
+	users.unfriend(post_data.from, post_data.to, req, "unfriend1");
+    });
+    req.once("unfriend1", (ret, args) => {
+	if (ret.success === false) {
+	    res.send(ret);
+	    return;
+	}
+	users.unfriend(post_data.to, post_data.from, req, "unfriend2");
+    });
+    req.once("unfriend2", (ret, args) => {
+	res.send(ret);
+    });
+});
 
 /* explore page */
 app.get("/explore", function(req, res) {
@@ -606,7 +801,42 @@ app.get("/api/values", function(req, res){
 
 app.get("/api/auth", function(req, res){
     /* auth details - from session variable */
-    res.send(req.session["auth"]);
+    res.send(req.session.auth);
+});
+
+app.get("/api/update-auth", function(req, res){
+    /*
+     * update auth data and returns it
+     * this is needed for update friends list
+     * maybe move friends list somewhere else?
+     *
+     * TODO right now avatar doesn't get updated
+     * */
+    req.once("user_info", (ret) => {
+	if (ret.success === false) {
+	    res.send(req.session.auth);
+	    return;
+	}
+	/*
+	 * we need this because we don't use everything that's
+	 * returned by get_user_info()
+	 *
+	 * TODO update avatar/avatarUrl as well
+	 * */
+	let updated_data = {
+	    uid: ret.uid,
+	    firstName: ret.firstName,
+	    lastName: ret.lastName,
+	    email: ret.email,
+	    type: ret.type,
+	    gender: ret.gender,
+	    birthday: ret.birthday,
+	    friends: ret.friends
+	};
+	Object.assign(req.session.auth, updated_data);
+	res.send(req.session.auth);
+    });
+    users.get_user_info(req.session.auth.uid, req, "user_info");
 });
 
 app.get("/api/posts", function(req, res){
@@ -835,6 +1065,172 @@ app.get("/api/users", function(req, res){
     });
     users.get_users(users_emitter, "users");
 });
+
+app.get("/api/friend-requests", function(req, res){
+    /*
+     * list of friend requests for user currently logged in
+     * user logged in: req.session.auth.uid
+     *
+     * this also adds firstName, avatar etc to received requests
+     * so they can be displayed
+     * TODO refactor this code
+     * */
+    if (typeof(req.session["auth"]) == "undefined"){
+	res.send([]);
+	return;
+    }
+
+    let num_req_received = 0, num_updated = 0, requests = [];
+    const req_emitter = new EventEmitter();
+    req_emitter.on("avatarLoopFinish", (result) => {
+	res.send(requests);
+    });
+    req_emitter.on("avatarLoopElem", (result) => {
+	num_updated++;
+	if (result.success === false) {
+	    if (num_updated == num_req_received)
+		req_emitter.emit("avatarLoopFinish");
+	    return;
+	}
+	let index = result.args.index;
+	requests[index].from.avatarUrl = result.path;
+	if (num_updated == num_req_received) {
+	    req_emitter.emit("avatarLoopFinish");
+	}
+    });
+    req_emitter.on("userLoopFinish", () => {
+	num_updated = 0;
+	for (let i = 0; i < requests.length; i++) {
+	    if (requests[i].to.id == req.session.auth.uid) {
+		photos.get_photo_info(requests[i].from.avatar, req_emitter,
+				      "avatarLoopElem", {index: i});
+	    }
+	}
+    });
+    req_emitter.on("userLoopElem", (result) => {
+	num_updated++;
+	if (result.success === false) {
+	    if (num_updated == num_req_received)
+		req_emitter.emit("userLoopFinish");
+	    return;
+	}
+	let index = result.args.index;
+	requests[index].from.firstName = result.firstName;
+	requests[index].from.lastName = result.lastName;
+	requests[index].from.avatar = result.avatar;
+	if (num_updated == num_req_received) {
+	    req_emitter.emit("userLoopFinish");
+	}
+    });
+    req_emitter.once("friend_requests", (ret) => {
+	if (ret.success === false) {
+	    res.send([]);
+	    return;
+	}
+	if (ret.requests.length == 0) {
+	    res.send([]);
+	    return;
+	}
+	requests = ret.requests;
+	for (let i = 0; i < requests.length; i++) {
+	    /* get info only on requests I received */
+	    if (requests[i].to.id == req.session.auth.uid) {
+		num_req_received++;
+		users.get_user_info(requests[i].from.id,
+				    req_emitter, "userLoopElem", {index: i});
+	    }
+	}
+	if (num_req_received == 0) {
+	    res.send(requests);
+	}
+    });
+    friend_requests.get_requests(req.session.auth.uid,
+				 req_emitter, "friend_requests");
+});
+
+app.get("/api/friends", function(req, res){
+    /*
+     * updates list of friends for currently logged in user
+     * with firstName, lastName, avatar etc
+     * this is in: req.session.auth.friends
+     *
+     * to avoid another call to /api/auth this also returns
+     * req.session.auth
+     * */
+    if (typeof(req.session.auth) == "undefined"){
+	res.send({});
+	return;
+    }
+    let friends_emitter = new EventEmitter();
+    friends_emitter.on("friends", (result) => {
+	/*
+	 * nothing to update here, we passed friends list
+	 * by reference, so we just need to return auth
+	 * */
+	res.send(req.session.auth);
+    });
+    update_user_list(req.session.auth.friends, friends_emitter, "friends");
+});
+
+function update_user_list(friends, ee, event) {
+    /*
+     * Function that updates a list of users (uids)
+     * with the following info:
+     *   firstName, lastName, avatar, avatarUrl
+     *
+     * Updated list will be in result.friends
+     *
+     * TODO make this function to accept custom params to
+     * update
+     * */
+    let num_updated = 0;
+    if (friends.length == 0) {
+	ee.emit(event, {success: true, friends: friends});
+    }
+
+    let friends_emitter = new EventEmitter();
+    friends_emitter.on("avatarLoopFinish", (result) => {
+	ee.emit(event, {success: true, friends: friends});
+    });
+    friends_emitter.on("avatarLoopElem", (result) => {
+	num_updated++;
+	if (result.success === false) {
+	    if (num_updated == friends.length)
+		friends_emitter.emit("avatarLoopFinish");
+	    return;
+	}
+	let index = result.args.index;
+	friends[index].avatarUrl = result.path;
+	if (num_updated == friends.length) {
+	    friends_emitter.emit("avatarLoopFinish");
+	}
+    });
+    friends_emitter.on("userLoopFinish", () => {
+	num_updated = 0;
+	for (let i = 0; i < friends.length; i++) {
+	    photos.get_photo_info(friends[i].avatar, friends_emitter,
+				  "avatarLoopElem", {index: i});
+	}
+    });
+    friends_emitter.on("userLoopElem", (result) => {
+	num_updated++;
+	if (result.success === false) {
+	    if (num_updated == friends.length)
+		friends_emitter.emit("userLoopFinish");
+	    return;
+	}
+	let index = result.args.index;
+	friends[index].firstName = result.firstName;
+	friends[index].lastName = result.lastName;
+	friends[index].avatar = result.avatar;
+	if (num_updated == friends.length)
+	    friends_emitter.emit("userLoopFinish");
+    });
+    for (let i = 0; i < friends.length; i++) {
+	users.get_user_info(friends[i].id, friends_emitter,
+			    "userLoopElem", {index: i});
+    }
+}
 
 /* TODO maybe delete this */
 app.get("/api/logout", function(req, res){

@@ -7,7 +7,8 @@ const ActionTypes = {
     CHANGE_POST_VIEW: "CHANGE_POST_VIEW",
     SET_POSTS: "SET_POSTS",
     UPDATE_LAST_USER: "UPDATE_LAST_USER",
-    SET_USERS: "SET_USERS"
+    SET_USERS: "SET_USERS",
+    UPDATE_FRIEND_REQUESTS: "UPDATE_FRIEND_REQUESTS"
 };
 
 const Actions = {
@@ -51,6 +52,12 @@ const Actions = {
 	PetbookDispatcher.dispatch({
 	    type: ActionTypes.SET_USERS,
 	    users
+	});
+    },
+    update_friend_requests(requests) {
+	PetbookDispatcher.dispatch({
+	    type: ActionTypes.UPDATE_FRIEND_REQUESTS,
+	    requests
 	});
     }
 };

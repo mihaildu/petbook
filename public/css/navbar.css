@@ -20,6 +20,7 @@
     padding-left: 5px;
     padding-right: 5px;
     float: left;
+    cursor: pointer;
 }
 
 /* navbar separators */
@@ -75,4 +76,69 @@
     border-radius: 10px;
     float: left;
     margin-right: 10px;
+}
+
+#friends-modal-dialog {
+    width: 450px;
+}
+
+#friends-modal-title {
+    text-align: center;
+    font-weight: bold;
+}
+
+#friends-modal-body {
+    padding: 0px;
+}
+
+.friend-request {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+}
+
+.friends-modal-avatar {
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #E0E0E0;
+    margin: 5px;
+}
+
+.friends-modal-author {
+    margin-left: 10px;
+}
+
+.accept-btn-modal {
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+/*
+ * this is a little bit hardcoded
+ * TODO this doesn't look nice for 100+ requests
+ * use javascript to center the req-nr
+ * */
+#friend-req-link {
+    position: relative;
+}
+#req-nr {
+    padding: 3px;
+    font-size: 12px;
+    line-height: 18px;
+    height: 22px;
+    min-width: 16px;
+    background-color: red;
+    text-align: center;
+    border-radius: 7px;
+    position: absolute;
+    right: 33px;
+    top: 20px;
+}
+
+#friend-request-empty {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

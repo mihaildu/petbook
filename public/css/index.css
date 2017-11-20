@@ -88,7 +88,6 @@ ul#side-bar-list li.selected {
     height: 35px;
     display: flexbox;
     align-items: center;
-    //font-size: 20px;
 }
 
 #file-upload-btn {
@@ -130,4 +129,45 @@ ul#side-bar-list li.selected {
     //padding-bottom: 20px;
     display: inline-block;
     //margin-bottom: 100px;
+}
+
+#chat-friend-title {
+    //text-align: center;
+    font-size: 20px;
+    margin-left: 10px;
+}
+
+#chat-no-friends-txt {
+    margin: 10px;
+}
+
+#chat-friends-list {
+    margin-top: 10px;
+}
+
+.chat-friend-wrapper {
+    height: 30px;
+    margin-bottom: 20px;
+}
+
+.chat-friend-item {
+    display: inline-block;
+    cursor: pointer;
+    padding-right: 10px;
+}
+
+.chat-friend-item:hover {
+    background-color: #E0E0E0;
+    border-radius: 5px;
+}
+
+.chat-friend-avatar {
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #E0E0E0;
+    margin: 5px;
+}
+
+.chat-friend-name {
+    margin-left: 10px;
 }

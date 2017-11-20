@@ -22,34 +22,58 @@
     //flex-wrap: wrap;
 }
 
+#top-about {
+    display: flex;
+}
+
 #profile-picture {
-    //max-width: 200px;
-    //max-height: 200px;
     width: 200px;
     height: 200px;
-    //display: inline-block;
-    //display: block;
     margin-right: 30px;
-    //margin-right: 100px;
-    //border: 1px solid black;
     border: 1px solid #868686;
     border: 1px solid #ddd;
     border-radius: 10px;
     cursor: pointer;
 }
 
-#name {
-    //font-size: 25px;
-    font-size: 20px;
+#name-div {
     display: inline-block;
-    //width: 100%;
-    //color: #868686;
+    align-self: center;
+}
+
+#name {
+    font-size: 20px;
+    display: block;
+}
+
+#add-friend-btn,
+#friend-btn,
+#friend-request-btn,
+#accept-friend-request-btn,
+#reject-friend-request-btn,
+#unfriend-btn,
+#message-btn {
+    margin-top: 10px;
+    display: block;
+}
+
+#friend-btn,
+#friend-request-btn {
+    cursor: default;
+}
+
+.separator {
+    display: inline-block;
+    background: #fff;
+    margin: 0px 6px;
+    height: 18px;
+    width: 1px;
+    vertical-align: top;
 }
 
 #other-info {
     margin-top: 40px;
     //background-color: white;
-
     //background-color: #E0E0E0;
     //padding: 10px;
     border-radius: 10px;
@@ -103,7 +127,7 @@
   cursor: pointer;
 }
 
-.modal-body{
+.avatar-modal-body{
     padding: 0px;
     margin: 0px;
 }
@@ -112,6 +136,8 @@
     width: 95%;
     margin-left: auto;
     margin-right: auto;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 1px;
 }
 
 #news-header a {
@@ -120,4 +146,32 @@
 
 .news-post {
     width: 95%;
+}
+
+#user-no-friends-txt {
+    margin: 10px;
+    padding-left: 20px;
+}
+
+#user-friend-list {
+    background-color: white;
+    border-radius: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 95%;
+}
+
+.user-friend-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.user-friend-avatar {
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #E0E0E0;
+}
+
+.user-friend-name {
+    margin-left: 10px;
 }

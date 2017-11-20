@@ -10,6 +10,7 @@ import Navbar from "./Navbar";
 function ExploreView(props) {
     const auth_data = props.main_store.get("auth");
     const user_list = props.main_store.get("users");
+    const friend_requests = props.main_store.get("friend_requests");
     const users = user_list.map(user => {
 	return (
 	    <div key={user.id} className="user-div">
@@ -27,7 +28,8 @@ function ExploreView(props) {
 
     return (
 	<div>
-	  <Navbar logo="img" login={false} auth={auth_data} />
+	  <Navbar logo="img" login={false} auth={auth_data}
+		  friend_requests={friend_requests} />
 	  <div id="clear-navbar"></div>
 	  <div className="container">
 	    <div id="users">

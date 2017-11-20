@@ -121,7 +121,7 @@ function NewsView(props) {
 		<div>
 		  <div className="modal img-modal" id={"img-modal-" + post.id}>
 		    <div className="modal-dialog modal-content">
-		      <div className="modal-body">
+		      <div className="modal-body img-modal-body">
 			<img id={"img-" + post.id} src={post.photoUrl}/>
 			<span className="close"
 			      onClick={(e) => image_close(post.id)}>x</span>

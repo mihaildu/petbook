@@ -26,7 +26,7 @@ class MainStore extends ReduceStore {
 	 *       type: ..., (pet type e.g. cat)
 	 *       gender: ...,
 	 *       birthday: ...,
-	 *       friends: [...],
+	 *       friends: [{id: ...}, ...],
 	 *       avatar: id of photo
 	 *       avatarUrl: path to photo
 	 *     }
@@ -46,13 +46,35 @@ class MainStore extends ReduceStore {
 	 *   TODO friends: [{id, avatar, etc}]
 	 */
 	return Immutable.OrderedMap({
-	    auth: {},
+	    auth: {
+		uid: "",
+		firstName: "",
+		lastName: "",
+		email: "",
+		password: "",
+		type: "",
+		gender: "",
+		birthday: "",
+		friends: undefined,
+		avatar: "",
+		avatarUrl: ""
+	    },
 	    posts_data: {
 		view: "text",
 		posts: []
 	    },
-	    last_user : {},
-	    users: []
+	    last_user : {
+		uid: "",
+		firstName: "",
+		lastName: "",
+		email: "",
+		type: "",
+		gender: "",
+		birthday: "",
+		friends: undefined
+	    },
+	    users: [],
+	    friend_requests: []
 	});
     }
     reduce(state, action) {
@@ -78,6 +100,8 @@ class MainStore extends ReduceStore {
 	    return state.set("last_user", action.data);
 	case ActionTypes.SET_USERS:
 	    return state.set("users", action.users);
+	case ActionTypes.UPDATE_FRIEND_REQUESTS:
+	    return state.set("friend_requests", action.requests);
 	default:
 	    return state;
 	}

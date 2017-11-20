@@ -29,7 +29,7 @@ function WelcomeView(props) {
     /* <SignUpView values={values} /> */
     return (
 	<div>
-	  <Navbar logo="text" login={true} />
+	  <Navbar logo="text" login={true} friend_requests={[]} />
 	  <div id="clear-navbar"></div>
 	  <div className="container" id="main-container">
 	    <div className="row">

@@ -12,6 +12,10 @@ $.get("/api/users", function(users, status){
     Actions.set_users(users);
 });
 
+$.get("/api/friend-requests", function(requests, status){
+    Actions.update_friend_requests(requests);
+});
+
 ReactDOM.render(
     <ExploreViewContainer />,
     document.getElementById("root")

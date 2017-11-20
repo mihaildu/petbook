@@ -8,6 +8,10 @@ $.get("/api/auth", function(auth, status){
     Actions.update_auth(auth);
 });
 
+$.get("/api/friend-requests", function(requests, status){
+    Actions.update_friend_requests(requests);
+});
+
 $.get("/api" + window.location.pathname, function(data, status){
     Actions.update_last_user(data);
 });

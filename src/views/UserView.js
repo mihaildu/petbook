@@ -16,6 +16,7 @@ function UserView(props) {
     const auth_data = props.main_store.get("auth");
     const user_data = props.main_store.get("last_user");
     const posts_data = props.main_store.get("posts_data");
+    const friend_requests = props.main_store.get("friend_requests");
     const tab = posts_data.view;
 
     function change_post_view(event, dest) {
@@ -59,19 +60,68 @@ function UserView(props) {
 	    return (elem.isText === false);
 	});
     }
-    else if (tab == "friends")
-	posts = [];
+    let wall_view;
+    if (tab == "friends") {
+	if (user_data.friends === undefined) {
+	    /* data is not ready yet */
+	    wall_view = "";
+	} else if (user_data.friends.length == 0) {
+	    /*
+	     * TODO
+	     * maybe check for auth_data.uid and user_data.uid
+	     * if same id, show "you have no friends, explore..."
+	     * */
+	    wall_view = (
+		<div id="user-no-friends-txt">
+		  This person has no friends.
+		</div>
+	    );
+	} else if (typeof(user_data.friends[0].firstName) != "undefined") {
+	    /*
+	     * TODO
+	     * for now this looks good
+	     * later - add "Add Friend" & "Message" button
+	     * or switch to only avatars (similar to explore)
+	     *
+	     * also, some checkings - is this me?
+	     * */
+	    let friends = user_data.friends.map(friend => {
+		return (
+		    <div key={friend.id} className="user-friend-item">
+		      <img src={friend.avatarUrl}
+			   className="user-friend-avatar" />
+		      <a className="user-friend-name"
+			 href={"/user/" + friend.id}>
+			{friend.firstName + " " + friend.lastName}
+		      </a>
+		    </div>
+		);
+	    });
+	    wall_view = (
+		<div id="user-friend-list">
+		  {friends}
+		</div>
+	    );
+	} else {
+	    /* data not ready or error */
+	    wall_view = "";
+	}
+    } else {
+	wall_view = <NewsView posts={posts} auth_data={auth_data} />;
+    }
     return (
 	<div>
-	  <Navbar logo="img" login={false} auth={auth_data} />
+	  <Navbar logo="img" login={false} auth={auth_data}
+		  friend_requests={friend_requests} />
 	  <div id="clear-navbar"></div>
 	  <div className="container" id="main-container">
 	    <div className="col-md-6">
-	      <AboutView auth_data={auth_data} user_data={user_data} />
+	      <AboutView auth_data={auth_data} user_data={user_data}
+			 friend_requests={friend_requests} />
 	    </div>
 	    <div className="col-md-6">
 	      {nav_tabs}
-	      <NewsView posts={posts} auth_data={auth_data} />
+	      {wall_view}
 	    </div>
 	  </div>
 	</div>

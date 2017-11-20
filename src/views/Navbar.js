@@ -3,10 +3,63 @@
  *
  * TODO
  *   make sure navbar collapses at the right width
+ *   the navbar moves a little to the right when friend request modal
+ *     shows up - not a big issue
  * */
 import React from "react";
 
+import {Actions} from "../data/PetbookActions.js";
+
 function Navbar(props) {
+
+    function show_friend_requests() {
+	$("#friends-modal").modal("show");
+    }
+
+    function accept_friend(uid) {
+	let post_data = {
+	    from: uid,
+	    to: props.auth.uid
+	};
+	$.post("/accept-friend", post_data, (data) => {
+	    if (data.success == true) {
+		/* update list of friend requests */
+		$.get("/api/friend-requests", (reqs, status) => {
+		    Actions.update_friend_requests(reqs);
+		});
+		/* update friends list */
+		$.get("/api/update-auth", (auth, status) => {
+		    Actions.update_auth(auth);
+		    /*
+		     * update info on friends (firstName, lastName etc)
+		     * this is not needed on any page, but the request
+		     * is async so it shouldn't have a big impact on perf
+		     *
+		     * also, this needs to be done only after the list of
+		     * friends is updated
+		     * */
+		    $.get("/api/friends", function(auth, status){
+			Actions.update_auth(auth);
+		    });
+		});
+	    }
+	});
+    }
+
+    function reject_friend(uid) {
+	let post_data = {
+	    from: uid,
+	    to: props.auth.uid
+	};
+	$.post("/reject-friend", post_data, (data) => {
+	    if (data.success == true) {
+		$.get("/api/friend-requests", (reqs, status) => {
+		    Actions.update_friend_requests(reqs);
+		});
+	    }
+	});
+    }
+
     let logo;
     if (props.logo == "text") {
 	logo = (
@@ -21,6 +74,30 @@ function Navbar(props) {
 	    </div>
 	);
     }
+
+    /* I guess the name is ok since this only shows in navbar */
+    const received_requests = props.friend_requests.filter(elem => {
+	return (elem.to.id == props.auth.uid) && (elem.status != "rejected");
+    });
+
+    let req_nr, no_req_txt;
+    if (received_requests.length > 0) {
+	req_nr = (
+	    <div id="req-nr">
+	      {received_requests.length}
+	    </div>
+	);
+	no_req_txt = "";
+    }
+    else {
+	req_nr = "";
+	no_req_txt = (
+	    <div id="no-req-txt">
+	      You have no friend requests
+	    </div>
+	);
+    }
+
     /* extra is the stuff on the right */
     let extra;
     if (props.login == true) {
@@ -68,8 +145,10 @@ function Navbar(props) {
 		Home
 	      </a>
 	      <img className="navbar-separator" src="/icos/vert-favicon.ico"/>
-	      <a title="Friend Requests" className="navbar-link" href="#">
+	      <a id="friend-req-link" title="Friend Requests"
+		 className="navbar-link" onClick={show_friend_requests}>
 		<img id="friend-request" src="/imgs/pet-friend-req.png"/>
+		{req_nr}
 	      </a>
 	      <img className="navbar-separator" src="/icos/vert-favicon.ico"/>
 	      <a title="Chat" className="navbar-link" href="#">
@@ -86,7 +165,7 @@ function Navbar(props) {
     }
 
     /* when page width goes under a certain value */
-    let collapsed_btn = (
+    const collapsed_btn = (
 	<button type="button" className="navbar-toggle collapsed"
 		data-toggle="collapse"
 		data-target="#navmenu"
@@ -97,20 +176,64 @@ function Navbar(props) {
 	</button>
     );
 
-    return (
-	<nav className="navbar navbar-default navbar-fixed-top">
-	  <div className="container">
-	    <div className="navbar-header">
-	      <a className="navbar-brand" href="/">
-		{logo}
+    let friend_requests = received_requests.map(request => {
+	return (
+	    <div key={request.id} className="friend-request">
+	      <img src={request.from.avatarUrl}
+		   className="friends-modal-avatar" />
+	      <a className="friends-modal-author"
+		 href={"/user/" + request.from.id}>
+		{request.from.firstName + " " + request.from.lastName}
 	      </a>
-	      {collapsed_btn}
+	      <button className="form-group btn btn-primary accept-btn-modal"
+		      onClick={(e) => accept_friend(request.from.id)}>
+		Accept
+	      </button>
+	      <button className="form-group btn btn-primary reject-btn-modal"
+		      onClick={(e) => reject_friend(request.from.id)}>
+		Reject
+	      </button>
 	    </div>
-	    <div className="my-class collapse navbar-collapse" id="navmenu">
-	      {extra}
+	);
+    });
+    if (received_requests.length == 0) {
+	friend_requests = (
+	    <div id="friend-request-empty">
+	      You have no friend requests
+	    </div>
+	);
+    }
+    return (
+	<div>
+	  <div className="modal" id="friends-modal">
+	    <div className="modal-dialog modal-content"
+		 id="friends-modal-dialog">
+	      <div className="modal-header">
+		<button className="close" data-dismiss="modal">
+		  x
+		</button>
+		<div className="modal-title" id="friends-modal-title">
+		  Friend Requests</div>
+	      </div>
+	      <div className="modal-body" id="friends-modal-body">
+		{friend_requests}
+	      </div>
 	    </div>
 	  </div>
-	</nav>
+	  <nav className="navbar navbar-default navbar-fixed-top">
+	    <div className="container">
+	      <div className="navbar-header">
+		<a className="navbar-brand" href="/">
+		  {logo}
+		</a>
+		{collapsed_btn}
+	      </div>
+	      <div className="my-class collapse navbar-collapse" id="navmenu">
+		{extra}
+	      </div>
+	    </div>
+	  </nav>
+	</div>
     );
 }
 
