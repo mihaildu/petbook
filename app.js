@@ -30,6 +30,8 @@ app.use(express.static(__dirname + "/public"));
 app.use("/photos", (req, res, next) => {
     dbx.filesDownload({path: req.originalUrl})
 	.then(function(response) {
+	    /* enable caching for images - one year */
+	    res.setHeader("Cache-Control", "public, max-age=31557600");
 	    res.end(response.fileBinary, "binary");
 	})
 	.catch(function(error){
