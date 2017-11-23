@@ -7,6 +7,7 @@ import {Actions} from "../data/PetbookActions";
 import Navbar from "./Navbar";
 import NewsView from "./NewsView";
 import AboutView from "./AboutView";
+import PopupChatView from "./PopupChatView";
 
 function UserView(props) {
     /*
@@ -17,6 +18,7 @@ function UserView(props) {
     const user_data = props.main_store.get("last_user");
     const posts_data = props.main_store.get("posts_data");
     const friend_requests = props.main_store.get("friend_requests");
+    const popup_chats = props.main_store.get("popup_chats");
     const tab = posts_data.view;
 
     function change_post_view(event, dest) {
@@ -124,6 +126,7 @@ function UserView(props) {
 	      {wall_view}
 	    </div>
 	  </div>
+	  <PopupChatView auth_data={auth_data} popup_chats={popup_chats} />
 	</div>
     );
 }

@@ -115,6 +115,47 @@ function AboutView(props) {
 	return false;
     }
 
+    function start_chat() {
+	/*
+	 * TODO
+	 * this is duplicated code (same in ChatView.js)
+	 * figure out a place where to put this and call from both
+	 * */
+	let req_url = "/api/chat/" + auth_data.uid + "/" + user_data.uid;
+	$.get(req_url, (messages, status) => {
+	    /* convert from /api/ format to local format */
+	    let new_messages = [];
+	    messages.forEach(message => {
+		let firstName, lastName;
+		if (message.from == auth_data.uid) {
+		    firstName = auth_data.firstName;
+		    lastName = auth_data.lastName;
+		} else {
+		    firstName = user_data.firstName;
+		    lastName = user_data.lastName;
+		}
+		new_messages.push({
+		    pid: user_data.id,
+		    from: message.from,
+		    to: message.to,
+		    firstName: firstName,
+		    lastName: lastName,
+		    message: message.message
+		});
+	    });
+	    Actions.add_popup({
+		uid: user_data.uid,
+		firstName: user_data.firstName,
+		lastName: user_data.lastName,
+		avatar: user_data.avatar,
+		avatarUrl: user_data.avatarUrl,
+		messages: new_messages,
+		me_typing: false,
+		other_typing: false
+	    });
+	});
+    }
+
     const add_friend_btn = (
 	<button id="add-friend-btn" className="form-group btn btn-primary"
 		onClick={add_friend}>
@@ -160,7 +201,8 @@ function AboutView(props) {
 	</button>
     );
     const message_btn = (
-	<button id="message-btn" className="form-group btn btn-primary">
+	<button id="message-btn" className="form-group btn btn-primary"
+		onClick={start_chat}>
 	  Message
 	</button>
     );

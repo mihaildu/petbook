@@ -1,0 +1,65 @@
+/* CSS for popup chat windows */
+.popup-chat-window {
+    position: fixed;
+    bottom: 0px;
+    width: 300px;
+    height: 350px;
+    background-color: white;
+    border: 1px solid #ccc;
+}
+
+.popup-head {
+    background-color: #5ab7fd;
+    padding: 5px;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    clear: both;
+}
+
+.popup-head a {
+    color: inherit;
+}
+
+.popup-close-icon {
+    cursor: pointer;
+    float: right;
+}
+
+.popup-messages {
+    height: 290px;
+    border-bottom: 1px solid #ccc;
+    word-wrap: break-word;
+    overflow-y: scroll;
+}
+
+.popup-message {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-top: 5px;
+    font-size: 13px;
+}
+
+.popup-message-self {
+    color: #FF4136;
+}
+
+.popup-message-other {
+    color: #001f3f;
+}
+
+.popup-message-author {}
+
+.popup-text {
+    padding: 0px;
+    padding-left: 8px;
+    padding-bottom: 5px;
+    width: 100%;
+    border: 0px;
+    font-size: 13px;
+}
+
+.popup-typing-text {
+    font-style: italic;
+    font-size: 12px;
+}

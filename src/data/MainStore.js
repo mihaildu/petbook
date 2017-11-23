@@ -74,11 +74,12 @@ class MainStore extends ReduceStore {
 		friends: undefined
 	    },
 	    users: [],
-	    friend_requests: []
+	    friend_requests: [],
+	    popup_chats: []
 	});
     }
     reduce(state, action) {
-	let new_posts_data;
+	let new_posts_data, new_popup_chats, old_popup_chats, new_popup;
 	switch(action.type) {
 	case ActionTypes.UPDATE_AUTH:
 	    return state.set("auth", action.auth);
@@ -102,6 +103,73 @@ class MainStore extends ReduceStore {
 	    return state.set("users", action.users);
 	case ActionTypes.UPDATE_FRIEND_REQUESTS:
 	    return state.set("friend_requests", action.requests);
+	case ActionTypes.ADD_POPUP:
+	    old_popup_chats = state.get("popup_chats");
+	    for (let i in old_popup_chats) {
+		if (action.popup.uid == old_popup_chats[i].uid) {
+		    /* chat already opened for user, nothing to do */
+		    return state;
+		}
+	    }
+	    new_popup_chats = old_popup_chats.slice();
+	    new_popup = {};
+	    Object.assign(new_popup, action.popup);
+	    new_popup_chats.push(new_popup);
+	    return state.set("popup_chats", new_popup_chats);
+	case ActionTypes.REMOVE_POPUP:
+	    old_popup_chats = state.get("popup_chats");
+	    for (let i in old_popup_chats) {
+		if (action.uid == old_popup_chats[i].uid) {
+		    new_popup_chats = old_popup_chats.slice();
+		    new_popup_chats.splice(i, 1);
+		    return state.set("popup_chats", new_popup_chats);
+		}
+	    }
+	    return state;
+	case ActionTypes.ADD_MESSAGE_POPUP:
+	    old_popup_chats = state.get("popup_chats");
+	    for (let i in old_popup_chats) {
+		if (action.message.pid == old_popup_chats[i].uid) {
+		    new_popup_chats = old_popup_chats.slice();
+		    new_popup_chats[i].messages.push(action.message);
+		    return state.set("popup_chats", new_popup_chats);
+		}
+	    }
+	    /*
+	     * TODO
+	     * if message.to = me (state.get("auth")...)
+	     * then I didn't have the popup opened => get new message
+	     * from db and show notification
+	     * */
+	    return state;
+	case ActionTypes.CHANGE_ME_TYPING_POPUP:
+	    old_popup_chats = state.get("popup_chats");
+	    for (let i in old_popup_chats) {
+		if (action.popup_data.uid == old_popup_chats[i].uid) {
+		    /* TODO long lines */
+		    if (old_popup_chats[i].me_typing != action.popup_data.typing) {
+			new_popup_chats = old_popup_chats.slice();
+			new_popup_chats[i].me_typing = action.popup_data.typing;
+			return state.set("popup_chats", new_popup_chats);
+		    }
+		    break;
+		}
+	    }
+	    return state;
+	case ActionTypes.CHANGE_OTHER_TYPING_POPUP:
+	    old_popup_chats = state.get("popup_chats");
+	    for (let i in old_popup_chats) {
+		if (action.popup_data.uid == old_popup_chats[i].uid) {
+		    /* TODO long lines */
+		    if (old_popup_chats[i].other_typing != action.popup_data.typing) {
+			new_popup_chats = old_popup_chats.slice();
+			new_popup_chats[i].other_typing = action.popup_data.typing;
+			return state.set("popup_chats", new_popup_chats);
+		    }
+		    break;
+		}
+	    }
+	    return state;
 	default:
 	    return state;
 	}

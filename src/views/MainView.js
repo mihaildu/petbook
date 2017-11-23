@@ -9,11 +9,13 @@ import Navbar from "./Navbar";
 import SideBarView from "./SideBarView";
 import WallView from "./WallView";
 import ChatView from "./ChatView";
+import PopupChatView from "./PopupChatView";
 
 function MainView(props) {
     const auth_data = props.main_store.get("auth");
     const posts_data = props.main_store.get("posts_data");
     const friend_requests = props.main_store.get("friend_requests");
+    const popup_chats = props.main_store.get("popup_chats");
     /* get all posts */
     return (
 	<div>
@@ -31,6 +33,7 @@ function MainView(props) {
 	      <ChatView auth_data={auth_data} />
 	    </div>
 	  </div>
+	  <PopupChatView auth_data={auth_data} popup_chats={popup_chats} />
 	</div>
     );
 }

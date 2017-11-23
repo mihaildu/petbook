@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 
 import UserViewContainer from "./containers/UserViewContainer";
 import {Actions} from "./data/PetbookActions";
+import {connect_to_socket} from "./chat";
 
 $.get("/api/auth", function(auth, status){
     Actions.update_auth(auth);
@@ -22,6 +23,9 @@ $.get("/api/posts/" + uid, function(posts, status){
     /* this is fine since we can't see our own posts anyway */
     Actions.set_posts(posts);
 });
+
+/* connect to web socket for chat */
+connect_to_socket();
 
 ReactDOM.render(
     <UserViewContainer />,

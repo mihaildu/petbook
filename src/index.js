@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 
 import MainViewContainer from "./containers/MainViewContainer";
 import {Actions} from "./data/PetbookActions";
+import {connect_to_socket} from "./chat";
 
 /*
  * this is needed only when you accept a friend request
@@ -33,6 +34,9 @@ $.get("/api/update-auth", function(auth, status){
 	Actions.set_posts(posts);
     });
 });
+
+/* connect to web socket for chat */
+connect_to_socket();
 
 ReactDOM.render(
     <MainViewContainer />,

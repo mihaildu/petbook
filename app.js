@@ -10,6 +10,7 @@ const port = 5000;
 const EventEmitter = require("events");
 const qs = require("querystring");
 
+var socket = require("socket.io");
 const multer = require("multer");
 const dropbox = require("dropbox");
 let dbx = new dropbox({
@@ -22,6 +23,7 @@ const photos = require("my-util/photos.js");
 const posts = require("my-util/posts.js");
 const users = require("my-util/users.js");
 const friend_requests = require("my-util/friend_requests.js");
+const messages_db = require("my-util/messages.js");
 
 app.set("port", (process.env.PORT || port));
 app.use(express.static(__dirname + "/public"));
@@ -59,11 +61,17 @@ const signup_values = ["first_name_signup", "last_name_signup", "email_signup",
 
 /* start session */
 const session = require("express-session");
-app.use(session({
+/*
+ * TODO I think this stores session data in memory on server
+ * if so, too many session will cause the server to run out of
+ * memory; check MemoryStore on express-session page
+ * */
+const session_instance = session({
     secret: "p3tZ",
     resave: false,
     saveUninitialized: true
-}));
+});
+app.use(session_instance);
 
 /* welcome page */
 app.get(["/", "/index", "/index.html"], function(req, res) {
@@ -836,6 +844,7 @@ app.get("/api/update-auth", function(req, res){
 	    friends: ret.friends
 	};
 	Object.assign(req.session.auth, updated_data);
+	/* uid won't really change, but I'm saving this for later */
 	res.send(req.session.auth);
     });
     users.get_user_info(req.session.auth.uid, req, "user_info");
@@ -1234,6 +1243,41 @@ function update_user_list(friends, ee, event) {
     }
 }
 
+app.get("/api/chat/:user1/:user2", function(req, res){
+    /*
+     * returns all the chat messages between user1 and user2
+     * /api/messages is taken by flash messages
+     * */
+    if (typeof(req.session.auth) == "undefined"){
+	res.send(["You must be logged in to view this"]);
+	return;
+    }
+    /* one of the users must be the logged in one */
+    if ((req.session.auth.uid != req.params.user1) &&
+	(req.session.auth.uid != req.params.user2)) {
+	res.send(["You are not authorized to view this"]);
+	return;
+    }
+
+    let users = {
+	user1: req.params.user1,
+	user2: req.params.user2
+    };
+    let messages_emitter = new EventEmitter();
+    messages_emitter.on("messages", (result) => {
+	/*
+	 * TODO
+	 * maybe send error message instead of empty list on error
+	 * */
+	result.chat_messages.sort(function(a, b) {
+	    return new Date(a.timestamp).getTime() -
+		new Date(b.timestamp).getTime();
+	});
+	res.send(result.chat_messages);
+    });
+    messages_db.get_messages_users(users, messages_emitter, "messages");
+});
+
 /* TODO maybe delete this */
 app.get("/api/logout", function(req, res){
     req.session.destroy();
@@ -1258,6 +1302,119 @@ app.use(function(err, req, res, next){
     res.status(500).send("Oops, something went wrong: " + err.message);
 });
 
-app.listen(app.get("port"), function() {
-  console.log("Node app is running on port", app.get("port"));
+var server = app.listen(app.get("port"), function() {
+    console.log("Node app is running on port", app.get("port"));
+});
+
+/* web socket config for chat */
+var io = socket(server);
+
+/* session for websocket */
+var ios = require("socket.io-express-session");
+io.use(ios(session_instance));
+
+/*
+ * mapping between user ids and socket ids
+ * TODO I assume this should use disk storage as well
+ * */
+var sockets = {};
+
+io.on("connection", function(socket){
+    /* if user is not logged in, do nothing */
+    if (typeof(socket.handshake.session.auth) == "undefined") {
+	console.error("Unauthorized attempt to connect to web socket");
+	return;
+    }
+
+    /* save (uid, socket id) mapping */
+    let uid = socket.handshake.session.auth.uid;
+    /*
+     * I guess this is fine since uids are unique - no locks required
+     * for now this will do
+     * */
+    if (!(uid in sockets)) {
+	sockets[uid] = socket.id;
+    }
+    socket.on("disconnect", () => {
+	/*
+	 * TODO because of how the website is designed, this happens
+	 * when user changes page (socket goes out of scope?)
+	 * fix this - one connection every time
+	 * */
+	delete sockets[uid];
+    });
+    socket.on("chat", (msg) => {
+	/*
+	 * sanity checks
+	 * msg must have {from, to, fristName, lastName, message}
+	 * msg.from must be the logged in user
+	 * */
+	let required_fields = ["from", "to", "firstName",
+			       "lastName", "message"];
+
+	if (!required_fields.every(prop => prop in msg)) {
+	    console.error("incorrect message: " + msg);
+	    return;
+	}
+	if (msg.from != socket.handshake.session.auth.uid) {
+	    console.error("message is not from logged in user");
+	    return;
+	}
+	if (msg.to == socket.handshake.session.auth.uid) {
+	    console.error("can't send messages to self");
+	    return;
+	}
+	/* send message to other user if he is active */
+	if (msg.to in sockets) {
+	    let socket_id = sockets[msg.to];
+	    io.sockets.sockets[socket_id].emit("chat", msg);
+	}
+
+	/*
+	 * store message to db
+	 *
+	 * TODO new event to find out if other user has popup opened
+	 * then change seen according to that
+	 * */
+	let message_data = {
+	    from: msg.from,
+	    to: msg.to,
+	    seen: false,
+	    message: msg.message
+	};
+	const messages_db_emitter = new EventEmitter();
+	messages_db_emitter.on("save", (ret) => {
+	    /*
+	     * TODO
+	     * for now do nothing
+	     * if ret.success == false then show a "failed to send message"
+	     * and maybe try to save to db before sending to other user
+	     * and try again
+	     * */
+	    if (ret.success == false) {
+		console.error("Failed to save message to db: " + ret.messages);
+	    }
+	});
+	messages_db.save_message(message_data, messages_db_emitter, "save");
+    });
+    socket.on("typing", (popup_data) => {
+	let required_fields = ["uid", "typing"];
+	if (!required_fields.every(prop => prop in popup_data)) {
+	    console.error("incorrect message: " + popup_data);
+	    return;
+	}
+	if (popup_data.uid == socket.handshake.session.auth.uid) {
+	    console.error("can't notify self");
+	    return;
+	}
+	if (popup_data.uid in sockets) {
+	    let socket_id = sockets[popup_data.uid];
+	    /* swap uids - TODO maybe do something better than this */
+	    let new_popup_data = {
+		uid: socket.handshake.session.auth.uid,
+		typing: popup_data.typing
+	    };
+	    io.sockets.sockets[socket_id].emit("typing", new_popup_data);
+	}
+    });
 });

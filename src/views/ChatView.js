@@ -5,17 +5,51 @@
  * */
 import React from "react";
 
+import {Actions} from "../data/PetbookActions";
+
 function ChatView(props) {
     /*
      * props.auth_data.friends:
      *   [{id, firstName, lastName, avatar, avatarUrl}, ...]
      * */
-    function friend_click(friend) {
-	// open chat between you and friend.id
-	alert(friend.firstName + " " + friend.lastName);
-    }
-
     let {auth_data} = props;
+
+    function friend_click(friend) {
+	/* first, get old messages from db */
+	let req_url = "/api/chat/" + auth_data.uid + "/" + friend.id;
+	$.get(req_url, (messages, status) => {
+	    /* convert from /api/ format to local format */
+	    let new_messages = [];
+	    messages.forEach(message => {
+		let firstName, lastName;
+		if (message.from == auth_data.uid) {
+		    firstName = auth_data.firstName;
+		    lastName = auth_data.lastName;
+		} else {
+		    firstName = friend.firstName;
+		    lastName = friend.lastName;
+		}
+		new_messages.push({
+		    pid: friend.id,
+		    from: message.from,
+		    to: message.to,
+		    firstName: firstName,
+		    lastName: lastName,
+		    message: message.message
+		});
+	    });
+	    Actions.add_popup({
+		uid: friend.id,
+		firstName: friend.firstName,
+		lastName: friend.lastName,
+		avatar: friend.avatar,
+		avatarUrl: friend.avatarUrl,
+		messages: new_messages,
+		me_typing: false,
+		other_typing: false
+	    });
+	});
+    }
     let friends_list;
     if (auth_data.friends === undefined) {
 	/* data is not ready yet */
