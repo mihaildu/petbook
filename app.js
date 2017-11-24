@@ -1458,6 +1458,9 @@ io.on("connection", function(socket){
     if (!(uid in sockets)) {
 	sockets[uid] = socket.id;
     }
+    if (!(uid) in popups) {
+	popups[uid] = {};
+    }
     socket.on("disconnect", () => {
 	/*
 	 * TODO because of how the website is designed, this happens
@@ -1465,6 +1468,7 @@ io.on("connection", function(socket){
 	 * fix this - one connection every time
 	 * */
 	delete sockets[uid];
+	delete popups[uid];
     });
     socket.on("popup_open", (data) => {
 	/* user on socket opened a new popup to chat with uid */
@@ -1506,9 +1510,17 @@ io.on("connection", function(socket){
 	if (msg.to in sockets) {
 	    let socket_id = sockets[msg.to];
 	    io.sockets.sockets[socket_id].emit("chat", msg);
-	    /* if other user has popup for sender - save as seen in db */
-	    if (msg.from in popups[msg.to]) {
-		seen = true;
+	    /*
+	     * if other user has popup for sender - save as seen in db
+	     * TODO there seems to be a bug here
+	     * if I close the chat popup window and refresh after first message
+	     * I don't get notification; but I get one after second message
+	     * investigate
+	     * */
+	    if (msg.to in popups) {
+		if (msg.from in popups[msg.to]){
+		    seen = true;
+		}
 	    }
 	}
 
