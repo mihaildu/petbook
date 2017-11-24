@@ -18,6 +18,7 @@ function UserView(props) {
     const user_data = props.main_store.get("last_user");
     const posts_data = props.main_store.get("posts_data");
     const friend_requests = props.main_store.get("friend_requests");
+    const unseen_messages = props.main_store.get("unseen_messages");
     const popup_chats = props.main_store.get("popup_chats");
     const tab = posts_data.view;
 
@@ -114,7 +115,8 @@ function UserView(props) {
     return (
 	<div>
 	  <Navbar logo="img" login={false} auth={auth_data}
-		  friend_requests={friend_requests} />
+		  friend_requests={friend_requests}
+		  unseen_messages={unseen_messages} />
 	  <div id="clear-navbar"></div>
 	  <div className="container" id="main-container">
 	    <div className="col-md-6">

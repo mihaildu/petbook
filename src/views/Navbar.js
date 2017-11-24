@@ -16,6 +16,10 @@ function Navbar(props) {
 	$("#friends-modal").modal("show");
     }
 
+    function show_unseen_messages() {
+	$("#unseen-messages-modal").modal("show");
+    }
+
     function accept_friend(uid) {
 	let post_data = {
 	    from: uid,
@@ -60,6 +64,46 @@ function Navbar(props) {
 	});
     }
 
+    function view_message(user, uid) {
+	/*
+	 * TODO
+	 * duplicated code with AboutView and ChatView
+	 * */
+	let req_url = "/api/chat/" + props.auth.uid + "/" + uid;
+	$.get(req_url, (messages, status) => {
+	    /* convert from /api/ format to local format */
+	    let new_messages = [];
+	    messages.forEach(message => {
+		let firstName, lastName;
+		if (message.from == props.auth.uid) {
+		    firstName = props.auth.firstName;
+		    lastName = props.auth.lastName;
+		} else {
+		    firstName = user.firstName;
+		    lastName = user.lastName;
+		}
+		new_messages.push({
+		    pid: uid,
+		    from: message.from,
+		    to: message.to,
+		    firstName: firstName,
+		    lastName: lastName,
+		    message: message.message
+		});
+	    });
+	    Actions.add_popup({
+		uid: uid,
+		firstName: user.firstName,
+		lastName: user.lastName,
+		avatar: user.avatar,
+		avatarUrl: user.avatarUrl,
+		messages: new_messages,
+		me_typing: false,
+		other_typing: false
+	    });
+	});
+    }
+
     let logo;
     if (props.logo == "text") {
 	logo = (
@@ -80,6 +124,7 @@ function Navbar(props) {
 	return (elem.to.id == props.auth.uid) && (elem.status != "rejected");
     });
 
+    /* TODO I don't think I use no_req_txt anymore */
     let req_nr, no_req_txt;
     if (received_requests.length > 0) {
 	req_nr = (
@@ -94,6 +139,44 @@ function Navbar(props) {
 	no_req_txt = (
 	    <div id="no-req-txt">
 	      You have no friend requests
+	    </div>
+	);
+    }
+
+    /* unseen messages */
+    let unseen_messages = props.unseen_messages,
+	unseen_nr, unseen_txt;
+    if (unseen_messages.cnt > 0) {
+	unseen_nr = (
+	    <div id="unseen-nr">
+	      {unseen_messages.cnt}
+	    </div>
+	);
+    } else {
+	unseen_nr = "";
+    }
+
+    let unseen_messages_users = [], user_id = 0;
+    for (let bucket_id in unseen_messages.users) {
+	let user = unseen_messages.users[bucket_id];
+	unseen_messages_users.push(
+	    <div className="unseen-message" key={user_id++}>
+	      <img src={user.avatarUrl} className="unseen-message-avatar" />
+	      <a className="unseen-message-author"
+		 href={"/user/" + bucket_id}>
+		{user.firstName + " " + user.lastName}
+	      </a>
+	      <button className="form-group btn btn-primary unseen-view-btn"
+		      onClick={(e) => view_message(user, bucket_id)}>
+		View
+	      </button>
+	    </div>
+	);
+    }
+    if (unseen_messages.cnt == 0) {
+	unseen_messages_users = (
+	    <div id="unseen-messages-empty">
+	      You have no new messages
 	    </div>
 	);
     }
@@ -151,8 +234,10 @@ function Navbar(props) {
 		{req_nr}
 	      </a>
 	      <img className="navbar-separator" src="/icos/vert-favicon.ico"/>
-	      <a title="Chat" className="navbar-link" href="#">
+	      <a id="messages-link" title="Chat" className="navbar-link"
+		 onClick={show_unseen_messages}>
 		<img id="navbar-chat" src="/imgs/chat.png"/>
+		{unseen_nr}
 	      </a>
 	      <form className="navbar-form" method="post" action="/">
 		<button name="submit_logout" type="submit"
@@ -220,6 +305,23 @@ function Navbar(props) {
 	      </div>
 	    </div>
 	  </div>
+
+	  <div className="modal" id="unseen-messages-modal">
+	    <div className="modal-dialog modal-content"
+		 id="unseen-messages-modal-dialog">
+	      <div className="modal-header">
+		<button className="close" data-dismiss="modal">
+		  x
+		</button>
+		<div className="modal-title" id="unseen-messages-title">
+		  New Messages</div>
+	      </div>
+	      <div className="modal-body" id="unseen-messages-body">
+		{unseen_messages_users}
+	      </div>
+	    </div>
+	  </div>
+
 	  <nav className="navbar navbar-default navbar-fixed-top">
 	    <div className="container">
 	      <div className="navbar-header">

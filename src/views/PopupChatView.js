@@ -64,6 +64,11 @@ class PopupChatView extends React.Component {
 
 		/* clear input text area */
 		$("#input-" + popup.uid).val("");
+
+		/* user is not typing anymore */
+		Actions.change_me_typing_popup({uid: popup.uid,
+						typing: false});
+		socket.emit("typing", {uid: popup.uid, typing: false});
 	    }
 	}
     }
@@ -120,8 +125,8 @@ class PopupChatView extends React.Component {
 		let message_author;
 		/*
 		 * TODO
-		 * maybe change these with divs with different background colors
-		 * with border-radius, aligned to different sides
+		 * maybe change these with divs with different background
+		 * colors with border-radius, aligned to different sides
 		 * and maybe add avatarUrl + name as title
 		 * */
 		if (message.from == auth_data.uid) {

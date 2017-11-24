@@ -33,6 +33,9 @@ $.get("/api/update-auth", function(auth, status){
     $.get("/api/posts", function(posts, status){
 	Actions.set_posts(posts);
     });
+    $.get("/api/chat", function(messages, status){
+	Actions.set_unseen_messages(messages);
+    });
 });
 
 /* connect to web socket for chat */

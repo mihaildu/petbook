@@ -82,34 +82,38 @@
     width: 450px;
 }
 
-#friends-modal-title {
+#unseen-messages-modal-dialog {
+    width: 300px;
+}
+
+#friends-modal-title, #unseen-messages-title {
     text-align: center;
     font-weight: bold;
 }
 
-#friends-modal-body {
+#friends-modal-body, #unseen-messages-body {
     padding: 0px;
 }
 
-.friend-request {
+.friend-request, .unseen-message {
     padding: 10px;
     border-bottom: 1px solid #ddd;
     display: flex;
     align-items: center;
 }
 
-.friends-modal-avatar {
+.friends-modal-avatar, .unseen-message-avatar {
     height: 40px;
     border-radius: 20px;
     border: 1px solid #E0E0E0;
     margin: 5px;
 }
 
-.friends-modal-author {
+.friends-modal-author, .unseen-message-author {
     margin-left: 10px;
 }
 
-.accept-btn-modal {
+.accept-btn-modal, .unseen-view-btn {
     margin-left: auto;
     margin-right: 5px;
 }
@@ -119,10 +123,10 @@
  * TODO this doesn't look nice for 100+ requests
  * use javascript to center the req-nr
  * */
-#friend-req-link {
+#friend-req-link, #messages-link {
     position: relative;
 }
-#req-nr {
+#req-nr, #unseen-nr {
     padding: 3px;
     font-size: 12px;
     line-height: 18px;
@@ -132,11 +136,45 @@
     text-align: center;
     border-radius: 7px;
     position: absolute;
+}
+#req-nr {
     right: 33px;
     top: 20px;
 }
+#unseen-nr {
+    right: 10px;
+    top: 20px;
+}
 
-#friend-request-empty {
+/*
+ * TODO
+ * align this with the navbar (e.g. container)
+ * make it look good on mobile too
+ * then use this instead of modal for messages
+ * */
+#unseen-messages {
+    position: absolute;
+    //position: relative;
+    width: 300px;
+    max-height: 350px;
+    background-color: white;
+    border: 1px solid #ccc;
+    top: 50px;
+    //right: -10px;
+    margin-left: 100px;
+    margin-right: auto;
+    //right: 10%;
+    display: none;
+}
+
+.unseen-message {
+    //padding: 10px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    align-itesm: center;
+}
+
+#friend-request-empty, #unseen-messages-empty {
     height: 50px;
     display: flex;
     align-items: center;

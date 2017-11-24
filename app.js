@@ -1278,6 +1278,126 @@ app.get("/api/chat/:user1/:user2", function(req, res){
     messages_db.get_messages_users(users, messages_emitter, "messages");
 });
 
+app.get("/api/chat", function(req, res){
+    /*
+     * returns all the chat messages for user
+     *
+     * {user1: [msg1, msg2, ...], user2: [...], ...}
+     * */
+    if (typeof(req.session.auth) == "undefined"){
+	res.send("You must be logged in to view this");
+	return;
+    }
+    let messages_emitter = new EventEmitter();
+    let new_chat_messages = {};
+    let num_buckets = 0, num_updated = 0;
+
+    messages_emitter.on("avatarLoopFinish", () => {
+	/* sort each bucket after timestamp */
+	for (let bucket in new_chat_messages) {
+	    new_chat_messages[bucket].messages.sort(function(a, b) {
+		return new Date(a.timestamp).getTime() -
+		    new Date(b.timestamp).getTime();
+	    });
+	}
+	res.send(new_chat_messages);
+    });
+    messages_emitter.on("avatarLoopElem", (result) => {
+	num_updated++;
+	if (result.success === false) {
+	    if (num_updated == num_buckets)
+		messages_emitter.emit("avatarLoopFinish");
+	    return;
+	}
+	let bucket_id = result.args.bucket_id;
+	new_chat_messages[bucket_id].avatarUrl = result.path;
+	if (num_updated == num_buckets) {
+	    messages_emitter.emit("avatarLoopFinish");
+	}
+    });
+    messages_emitter.on("userLoopFinish", () => {
+	num_updated = 0;
+	for (let bucket_id in new_chat_messages) {
+	    photos.get_photo_info(new_chat_messages[bucket_id].avatar,
+				  messages_emitter, "avatarLoopElem",
+				  {bucket_id: bucket_id});
+	}
+    });
+    messages_emitter.on("userLoopElem", (result) => {
+	num_updated++;
+	if (result.success === false) {
+	    if (num_updated == num_buckets)
+		messages_emitter.emit("userLoopFinish");
+	    return;
+	}
+	let bucket_id = result.args.bucket_id;
+	new_chat_messages[bucket_id].firstName = result.firstName;
+	new_chat_messages[bucket_id].lastName = result.lastName;
+	new_chat_messages[bucket_id].avatar = result.avatar;
+	if (num_updated == num_buckets)
+	    messages_emitter.emit("userLoopFinish");
+    });
+    messages_emitter.on("messages", (result) => {
+	/*
+	 * converting result.chat_messages from [msg1, msg2, ...]
+	 * to {user1: {firstName, lastName, avatarUrl,
+	 *      messages: [msg1, msg2, ...]}, user2: {...}, ...}
+	 * */
+	if (result.chat_messages.length == 0) {
+	    res.send({});
+	    return;
+	}
+	result.chat_messages.forEach(message => {
+	    let bucket_id;
+	    if (message.from == req.session.auth.uid) {
+		bucket_id = message.to;
+	    } else {
+		bucket_id = message.from;
+	    }
+	    if (!(bucket_id in new_chat_messages)) {
+		new_chat_messages[bucket_id] = {
+		    messages: []
+		};
+		num_buckets++;
+		users.get_user_info(bucket_id, messages_emitter,
+				    "userLoopElem", {bucket_id: bucket_id});
+	    }
+	    new_chat_messages[bucket_id].messages.push(message);
+	});
+    });
+    messages_db.get_messages(req.session.auth.uid,
+			     messages_emitter, "messages");
+});
+
+app.post("/read-chat", function(req, res){
+    /* marks all messages from uid to you as read */
+    if (typeof(req.session.auth) == "undefined"){
+	res.send({success: false});
+	return;
+    }
+    /* get post data */
+    let body = "";
+    req.on("data", (chunk) => {
+	let chunk_str = chunk.toString();
+	body += chunk_str;
+    });
+    let post_data;
+    req.on("end", () => {
+	post_data = qs.parse(body);
+	/* check if post was done correctly */
+	if (!["from"].every(prop => prop in post_data)){
+	    console.error("incorrect post: bad fields in post_data");
+	    res.send({success: false});
+	    return;
+	}
+	let users_data = {from: post_data.from, to: req.session.auth.uid};
+	messages_db.mark_read(users_data, req, "read_chat");
+    });
+    req.once("read_chat", (ret, args) => {
+	res.send(ret);
+    });
+});
+
 /* TODO maybe delete this */
 app.get("/api/logout", function(req, res){
     req.session.destroy();
@@ -1319,6 +1439,9 @@ io.use(ios(session_instance));
  * */
 var sockets = {};
 
+/* popups opened on clients */
+var popups = {};
+
 io.on("connection", function(socket){
     /* if user is not logged in, do nothing */
     if (typeof(socket.handshake.session.auth) == "undefined") {
@@ -1343,6 +1466,20 @@ io.on("connection", function(socket){
 	 * */
 	delete sockets[uid];
     });
+    socket.on("popup_open", (data) => {
+	/* user on socket opened a new popup to chat with uid */
+	let popup_owner = socket.handshake.session.auth.uid;
+	if (!(popup_owner in popups)) {
+	    popups[popup_owner] = {};
+	}
+	popups[popup_owner][data.uid] = true;
+    });
+    socket.on("popup_close", (data) => {
+	/* user closed popup to chat with uid */
+	let popup_owner = socket.handshake.session.auth.uid;
+	if (uid in popups[popup_owner])
+	    delete popups[popup_owner][data.uid];
+    });
     socket.on("chat", (msg) => {
 	/*
 	 * sanity checks
@@ -1365,21 +1502,21 @@ io.on("connection", function(socket){
 	    return;
 	}
 	/* send message to other user if he is active */
+	let seen = false;
 	if (msg.to in sockets) {
 	    let socket_id = sockets[msg.to];
 	    io.sockets.sockets[socket_id].emit("chat", msg);
+	    /* if other user has popup for sender - save as seen in db */
+	    if (msg.from in popups[msg.to]) {
+		seen = true;
+	    }
 	}
 
-	/*
-	 * store message to db
-	 *
-	 * TODO new event to find out if other user has popup opened
-	 * then change seen according to that
-	 * */
+	/* store message to db */
 	let message_data = {
 	    from: msg.from,
 	    to: msg.to,
-	    seen: false,
+	    seen: seen,
 	    message: msg.message
 	};
 	const messages_db_emitter = new EventEmitter();

@@ -135,7 +135,7 @@ function AboutView(props) {
 		    lastName = user_data.lastName;
 		}
 		new_messages.push({
-		    pid: user_data.id,
+		    pid: user_data.uid,
 		    from: message.from,
 		    to: message.to,
 		    firstName: firstName,

@@ -13,7 +13,8 @@ const ActionTypes = {
     REMOVE_POPUP: "REMOVE_POPUP",
     ADD_MESSAGE_POPUP: "ADD_MESSAGE_POPUP",
     CHANGE_ME_TYPING_POPUP: "CHANGE_ME_TYPING_POPUP",
-    CHANGE_OTHER_TYPING_POPUP: "CHANGE_OTHER_TYPING_POPUP"
+    CHANGE_OTHER_TYPING_POPUP: "CHANGE_OTHER_TYPING_POPUP",
+    SET_UNSEEN_MESSAGES: "SET_UNSEEN_MESSAGES"
 };
 
 const Actions = {
@@ -93,6 +94,12 @@ const Actions = {
 	PetbookDispatcher.dispatch({
 	    type: ActionTypes.CHANGE_OTHER_TYPING_POPUP,
 	    popup_data
+	});
+    },
+    set_unseen_messages(messages) {
+	PetbookDispatcher.dispatch({
+	    type: ActionTypes.SET_UNSEEN_MESSAGES,
+	    messages
 	});
     }
 };
