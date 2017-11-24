@@ -151,18 +151,44 @@ app.post(["/", "/index", "/index.html", "/user/:id"], function(req, res){
 		password: post_data["password_signup"],
 		type: post_data["pet_type_signup"],
 		gender: post_data["pet_gender_signup"],
-		birthday: post_data["pet_bday_signup"]
+		birthday: post_data["pet_bday_signup"],
+		isGuest: false
 	    };
 	    signup.attempt_signup(signup_data, req);
 	    return;
 	}
-	/* guest account post TODO */
+	/* guest account post */
 	if (typeof(post_data["submit_guest_signup"]) != "undefined"){
-	    res.send("Guest Account");
+	    /* if user already logged in - ignore */
+	    if (typeof(req.session["auth"]) != "undefined"){
+		res.redirect("/");
+		return;
+	    }
+	    /* generate some data and add account to db */
+	    const now = Date.now().toString();
+	    let signup_data = {
+		firstName: "Guest",
+		lastName: now,
+		email: now + "@mail.com",
+		password: "guest",
+		type: "Cat",
+		gender: "Female",
+		birthday: "2017-11-24",
+		isGuest: true
+	    };
+	    signup.attempt_signup(signup_data, req);
 	    return;
 	}
 	/* logout post */
 	if (typeof(post_data["submit_logout"]) != "undefined"){
+	    if (typeof(req.session.auth) == "undefined") {
+		res.redirect("/");
+		return;
+	    }
+	    if (req.session.auth.isGuest == true) {
+		// TODO maybe slice friends list
+		remove_user(req.session.auth.uid, req.session.auth.friends);
+	    }
 	    req.session.destroy();
 	    res.redirect("/");
 	    return;
@@ -581,7 +607,8 @@ function store_last_user(ee, event, req) {
 	    type: ret.type,
 	    gender: ret.gender,
 	    birthday: ret.birthday,
-	    friends: ret.friends
+	    friends: ret.friends,
+	    isGuest: ret.isGuest
 	};
 	/* get avatar path */
 	photos.get_photo_info(ret.avatar, store_emitter, "avatar");
@@ -841,7 +868,8 @@ app.get("/api/update-auth", function(req, res){
 	    type: ret.type,
 	    gender: ret.gender,
 	    birthday: ret.birthday,
-	    friends: ret.friends
+	    friends: ret.friends,
+	    isGuest: ret.isGuest
 	};
 	Object.assign(req.session.auth, updated_data);
 	/* uid won't really change, but I'm saving this for later */
@@ -1065,7 +1093,8 @@ app.get("/api/users", function(req, res){
 		gender: elem.gender,
 		birthday: elem.birthday,
 		friends: elem.friends,
-		avatar: elem.avatar
+		avatar: elem.avatar,
+		isGuest: elem.isGuest
 	    });
 	});
 	/* add avatarUrl */
@@ -1400,9 +1429,57 @@ app.post("/read-chat", function(req, res){
 
 /* TODO maybe delete this */
 app.get("/api/logout", function(req, res){
+    if (typeof(req.session.auth) == "undefined") {
+	res.redirect("/");
+	return;
+    }
+    if (req.session.auth.isGuest == true) {
+	remove_user(req.session.auth.uid, req.session.auth.friends);
+    }
     req.session.destroy();
     res.redirect("/");
 });
+
+function remove_user(uid, friends) {
+    /*
+     * function that completely removes uid
+     * to avoid a db query, uid list of friends must be
+     * passed as well as arg
+     * */
+    let num_updated = 0;
+    const user_emitter = new EventEmitter();
+    user_emitter.on("user", (ret) => {
+	/* nothing to do */
+    });
+    user_emitter.on("unfriendFinish", () => {
+	users.delete_user(uid, user_emitter, "user");
+    });
+    user_emitter.on("unfriendLoop", (ret) => {
+	num_updated++;
+	if (num_updated == friends.length) {
+	    user_emitter.emit("unfriendFinish");
+	}
+    });
+    user_emitter.on("requests", (ret) => {
+	if (friends.length == 0) {
+	    user_emitter.emit("unfriendFinish");
+	    return;
+	}
+	for (let i in friends) {
+	    users.unfriend(friends[i].id, uid, user_emitter, "unfriendLoop");
+	}
+    });
+    user_emitter.on("photos", (ret) => {
+	friend_requests.delete_requests(uid, user_emitter, "requests");
+    });
+    user_emitter.on("posts", (ret) => {
+	photos.delete_photos(uid, user_emitter, "photos");
+    });
+    user_emitter.on("messages", (ret) => {
+	posts.delete_posts(uid, user_emitter, "posts");
+    });
+    messages_db.remove_messages(uid, user_emitter, "messages");
+}
 
 app.get("/quiz", function(req, res) {
     res.send("TODO");

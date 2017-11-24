@@ -14,6 +14,7 @@ class MainStore extends ReduceStore {
     }
     getInitialState() {
 	/*
+	 * TODO update these
 	 * data in this store:
 	 *   auth
 	 *     auth data (for logged in users)
@@ -56,6 +57,7 @@ class MainStore extends ReduceStore {
 		type: "",
 		gender: "",
 		birthday: "",
+		isGuest: "",
 		friends: undefined,
 		avatar: "",
 		avatarUrl: ""
@@ -72,6 +74,7 @@ class MainStore extends ReduceStore {
 		type: "",
 		gender: "",
 		birthday: "",
+		isGuest: "",
 		friends: undefined
 	    },
 	    users: [],
