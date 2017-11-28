@@ -8,7 +8,8 @@ module.exports = {
 	welcome: "./src/welcome.js",
 	index: "./src/index.js",
 	user: "./src/user.js",
-	explore: "./src/explore.js"
+	explore: "./src/explore.js",
+	quiz: "./src/quiz.js"
     },
     module: {
 	rules: [

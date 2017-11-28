@@ -1,0 +1,94 @@
+/* TODO this is common with welcome.css - place in same file */
+/* make the navbar a little big bigger */
+.navbar {
+    min-height: 70px;
+}
+
+/* for some reason the form groups in the navbar have no margins */
+.form-group {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+/* colors for navbar logo */
+.navbar-default .navbar-brand,
+.navbar-default .navbar-brand:hover {
+    color: #F5F5F5;
+}
+
+/* align everything in center vertically */
+.navbar {
+    display: flex;
+    align-items: center;
+}
+
+/* change font for navbar */
+.navbar-brand {
+    font-size: 30px;
+    font-weight: bolder;
+}
+
+/* clear navbar div */
+#clear-navbar {
+    margin-top: 71px;
+}
+
+/* add some spacing between navbar and everything else */
+#main-container {
+    margin-top: 100px;
+    //text-align: center;
+}
+
+#quiz-div {
+    /* maybe centered? */
+    //display: inline-block;
+    //width: auto;
+    //margin-left: auto;
+    //margin-right: auto;
+    //text-align: left;
+}
+
+#res-div {
+    display: none;
+}
+
+#res-div a {
+    display: block;
+    cursor: pointer;
+}
+
+#quiz-res-pet {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.quiz-title {
+    font-size: 30px;
+    font-weight: bolder;
+}
+
+.quiz-question, #quiz-submit-btn {
+    margin-top: 20px;
+}
+
+#quiz-submit-btn {
+    margin-bottom: 20px;
+}
+
+.quiz-question label {
+    font-weight: normal;
+}
+
+.quiz-option {
+    display: block;
+    cursor: pointer;
+}
+
+.quiz-option input {
+    cursor: pointer;
+}
+
+.quiz-option-text {
+    margin-left: 5px;
+}

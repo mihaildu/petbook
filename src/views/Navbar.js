@@ -186,7 +186,8 @@ function Navbar(props) {
     if (props.login == true) {
 	/* the login form */
 	extra = (
-	    <form className="navbar-form navbar-right" method="post">
+	    <form className="navbar-form navbar-right" method="post"
+		  action="/">
 	      <div className="form-group">
 		<input type="email" className="form-control"
 		       name="email_login" placeholder="Email" />

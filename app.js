@@ -46,6 +46,7 @@ const index_path = __dirname + "/views/index.html";
 const welcome_path = __dirname + "/views/welcome.html";
 const user_path = __dirname + "/views/user.html";
 const explore_path = __dirname + "/views/explore.html";
+const quiz_path = __dirname + "/views/quiz.html";
 
 /*
  * maximum file size for uploads
@@ -1482,7 +1483,201 @@ function remove_user(uid, friends) {
 }
 
 app.get("/quiz", function(req, res) {
-    res.send("TODO");
+    /* shouldn't be available to logged in users */
+    if (typeof(req.session.auth) != "undefined"){
+	res.redirect("/");
+	return;
+    }
+    res.sendFile(quiz_path);
+});
+
+app.post("/quiz", function(req, res) {
+    /* shouldn't be available to logged in users */
+    if (typeof(req.session.auth) != "undefined"){
+	res.redirect("/");
+	return;
+    }
+    /* get post data */
+    let body = "";
+    req.on("data", (chunk) => {
+	let chunk_str = chunk.toString();
+	body += chunk_str;
+    });
+    let post_data;
+    req.on("end", () => {
+	post_data = qs.parse(body);
+	/* check if post was done correctly */
+	let required_fields = ["height", "live", "clothes",
+			       "personality", "energy", "season"];
+
+	if (!required_fields.every(prop => prop in post_data)){
+	    console.error("incorrect post: bad fields in post_data");
+	    res.send({
+		success: false,
+		message: "Please answer all the questions"
+	    });
+	    return;
+	}
+
+	let [bird_cnt, cat_cnt, chinchilla_cnt, dog_cnt, fish_cnt, guinea_cnt,
+	     hamster_cnt, lizard_cnt, pig_cnt, rabbit_cnt, turtle_cnt] =
+		Array.apply(0, Array(11)).map(elem => 0);
+
+	/* TODO write a more generic function for this */
+	if (post_data.height == "g185") {
+	    pig_cnt++;
+	    dog_cnt++;
+	} else if (post_data.height == "175") {
+	    cat_cnt++;
+	    rabbit_cnt++;
+	} else if (post_data.height == "165") {
+	    turtle_cnt++;
+	    lizard_cnt++;
+	    chinchilla_cnt++;
+	    guinea_cnt++;
+	} else if (post_data.height == "s165") {
+	    hamster_cnt++;
+	    bird_cnt++;
+	    fish_cnt++;
+	}
+
+	if (post_data.live == "sea") {
+	    fish_cnt++;
+	    turtle_cnt++;
+	} else if (post_data.live == "rural") {
+	    guinea_cnt++;
+	    hamster_cnt++;
+	    pig_cnt++;
+	    rabbit_cnt++;
+	} else if (post_data.live == "city") {
+	    cat_cnt++;
+	    dog_cnt++;
+	} else if (post_data.live == "mountain") {
+	    lizard_cnt++;
+	    bird_cnt++;
+	    chinchilla_cnt++;
+	}
+
+	if (post_data.clothes == "bright") {
+	    fish_cnt++;
+	    lizard_cnt++;
+	    bird_cnt++;
+	} else if (post_data.clothes == "dark") {
+	    cat_cnt++;
+	    dog_cnt++;
+	    guinea_cnt++;
+	    chinchilla_cnt++;
+	    hamster_cnt++;
+	    pig_cnt++;
+	    rabbit_cnt++;
+	    turtle_cnt++;
+	}
+
+	if (post_data.personality == "social") {
+	    dog_cnt++;
+	    bird_cnt++;
+	    pig_cnt++;
+	} else if (post_data.personality == "introvert") {
+	    cat_cnt++;
+	} else if (post_data.personality == "shy") {
+	    guinea_cnt++;
+	    chinchilla_cnt++;
+	    hamster_cnt++;
+	    lizard_cnt++;
+	    rabbit_cnt++;
+	    turtle_cnt++;
+	}
+
+	if (post_data.energy == "energetic") {
+	    chinchilla_cnt++;
+	    fish_cnt++;
+	    bird_cnt++;
+	    rabbit_cnt++;
+	    dog_cnt++;
+	    hamster_cnt++;
+	    guinea_cnt++;
+	} else if (post_data.energy == "tired") {
+	    cat_cnt++;
+	    pig_cnt++;
+	    turtle_cnt++;
+	} else if (post_data.energy == "normal") {
+	    lizard_cnt++;
+	}
+
+	if (post_data.season == "spring") {
+	    chinchilla_cnt++;
+	    bird_cnt++;
+	    rabbit_cnt++;
+	} else if (post_data.season == "summer") {
+	    pig_cnt++;
+	    turtle_cnt++;
+	    lizard_cnt++;
+	} else if (post_data.season == "fall") {
+	    fish_cnt++;
+	    hamster_cnt++;
+	    guinea_cnt++;
+	} else if (post_data.season == "winter") {
+	    cat_cnt++;
+	    dog_cnt++;
+	}
+
+	/* TODO add some description to each type */
+	let pet_list = [
+	    {
+		type: "Bird",
+		cnt: bird_cnt
+	    },
+	    {
+		type: "Cat",
+		cnt: cat_cnt
+	    },
+	    {
+		type: "Chinchilla",
+		cnt: chinchilla_cnt
+	    },
+	    {
+		type: "Dog",
+		cnt: dog_cnt
+	    },
+	    {
+		type: "Fish",
+		cnt: fish_cnt
+	    },
+	    {
+		type: "Guinea Pig",
+		cnt: guinea_cnt
+	    },
+	    {
+		type: "Hamster",
+		cnt: hamster_cnt
+	    },
+	    {
+		type: "Lizard",
+		cnt: lizard_cnt
+	    },
+	    {
+		type: "Pig",
+		cnt: pig_cnt
+	    },
+	    {
+		type: "Rabbit",
+		cnt: rabbit_cnt
+	    },
+	    {
+		type: "Turtle",
+		cnt: turtle_cnt
+	    }
+	];
+	let max_match = -1;
+	let inner_pet = "";
+	pet_list.forEach(elem => {
+	    if (elem.cnt > max_match) {
+		max_match = elem.cnt;
+		inner_pet = elem.type;
+	    }
+	});
+	res.send({success: true, pet: inner_pet});
+    });
 });
 
 app.use(function(err, req, res, next){
