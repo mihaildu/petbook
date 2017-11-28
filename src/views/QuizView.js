@@ -86,7 +86,7 @@ function QuizView(props) {
 		    <input type="radio" name="height"
 			   value="g185"/>
 		    <span className="quiz-option-text">
-		      &gt; 1.85cm
+		      &gt; 1.85m
 		    </span>
 		  </label>
 
@@ -94,7 +94,7 @@ function QuizView(props) {
 		    <input type="radio" name="height"
 			   value="175"/>
 		    <span className="quiz-option-text">
-		      1.75 - 1.85cm
+		      1.75 - 1.85m
 		    </span>
 		  </label>
 
@@ -102,7 +102,7 @@ function QuizView(props) {
 		    <input type="radio" name="height"
 			   value="165"/>
 		    <span className="quiz-option-text">
-		      1.65 - 1.75cm
+		      1.65 - 1.75m
 		    </span>
 		  </label>
 
@@ -110,7 +110,7 @@ function QuizView(props) {
 		    <input type="radio" name="height"
 			   value="s165"/>
 		    <span className="quiz-option-text">
-		      &lt; 1.65cm
+		      &lt; 1.65m
 		    </span>
 		  </label>
 
