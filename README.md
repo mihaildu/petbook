@@ -13,15 +13,15 @@ This is a simple social network that follows facebook in design. While there are
    https://nodejs.org/en/download/
 
 2. clone the github repo
-```
-git clone https://github.com/dryhten/petbook.git
-```
+   ```
+   git clone https://github.com/dryhten/petbook.git
+   ```
 
 3. install required node packages
-```
-cd petbook
-npm install --save
-```
+   ```
+   cd petbook
+   npm install --save
+   ```
 
 4. install mongodb (petbook was tested with v3.4.10 community edition)
 
