@@ -3,11 +3,11 @@ Social network in React. A live demo for this project can be found at this addre
 
 https://petster.herokuapp.com/
 
-You can also run it on localhost (see instructions below).
+You can also install it yourself (see instructions below).
 
 This is a simple social network that follows facebook in design. While there are still a lot of features to be implemented, a core functionality is there.
 
-### Installation on localhost
+### Installation
 1. make sure you have node.js installed (petbook was tested on v8.9.1)
 
    https://nodejs.org/en/download/
@@ -94,7 +94,10 @@ This is a simple social network that follows facebook in design. While there are
    node app.js
    ```
 
-10. visit the website on localhost (port should be 5000)
+10. visit the website (port should be 5000)
+
+    e.g. if you are running it on localhost
+
     ```
     http://127.0.0.1:5000/
     ```
