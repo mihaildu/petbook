@@ -3,7 +3,7 @@
    "version": "1.0.0",
    "description": "Social network in react",
    "engines": {
-      "node": "6.11.1"
+      "node": "16.13.1"
    },
    "main": "index.js",
    "scripts": {
