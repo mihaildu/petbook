@@ -85,7 +85,7 @@ This is a simple social network that follows facebook in design. While there are
 
 8. bundle the react js files with webpack (since this is the same repo that runs on heroku, you'll need to run webpack with `NODE_ENV=production`; also, you might need to install webpack globally for this)
    ```
-   NODE_ENV=production webpack
+   NODE_ENV=production npx webpack-cli
    ```
 
 9. start the webserver
