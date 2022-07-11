@@ -17,13 +17,13 @@ let dbx = new dropbox({
     accessToken: process.env.DROPBOX_TOKEN
 });
 
-const login = require("my-util/login.js");
-const signup = require("my-util/signup.js");
-const photos = require("my-util/photos.js");
-const posts = require("my-util/posts.js");
-const users = require("my-util/users.js");
-const friend_requests = require("my-util/friend_requests.js");
-const messages_db = require("my-util/messages.js");
+const login = require("./utils/login.js");
+const signup = require("./utils/signup.js");
+const photos = require("./utils/photos.js");
+const posts = require("./utils/posts.js");
+const users = require("./utils/users.js");
+const friend_requests = require("./utils/friend_requests.js");
+const messages_db = require("./utils/messages.js");
 
 app.set("port", (process.env.PORT || port));
 app.use(express.static(__dirname + "/public"));
