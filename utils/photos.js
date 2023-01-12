@@ -4,8 +4,7 @@
 
 const EventEmitter = require("events");
 
-// "5a02652c05a47455d72b494e"
-const default_avatar_id = "62cc14f6e0ae8cdbf50b2293";
+const default_avatar_id = process.env.DEFAULT_AVATAR_ID;
 const default_avatar_path = "/photos/default_avatar.png";
 
 const connect = require("./connect.js");
